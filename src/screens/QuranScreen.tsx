@@ -170,7 +170,7 @@ export function QuranScreen() {
     return (
       <Pressable
         style={[styles.paraCardOuter, paraColumns > 1 && { flex: 1 }]}
-        onPress={() => router.push(`/juz/${item.number}` as any)}
+        onPress={() => router.push(`/parah/${item.number}` as any)}
         android_ripple={{ color: bgColor + '30', borderless: false }}
       >
         <View style={[styles.paraCard, { borderColor: theme.border, backgroundColor: theme.cardBackground }]}>

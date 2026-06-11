@@ -39,7 +39,7 @@ interface UnifiedAyah {
   surah: SurahInfo;
 }
 
-export function JuzScreen() {
+export function ParahScreen() {
   const theme = useTheme();
   const router = useRouter();
   const { id } = useLocalSearchParams();
@@ -396,7 +396,7 @@ export function JuzScreen() {
         </Pressable>
 
         <View style={styles.headerTitleContainer}>
-          <ThemedText style={styles.headerTitle}>Juz {juzId}</ThemedText>
+          <ThemedText style={styles.headerTitle}>Para {juzId}</ThemedText>
           <ThemedText style={styles.headerSubtitle} themeColor="textSecondary" numberOfLines={1}>
             {isLoading ? 'Loading Para content...' : juzTitle}
           </ThemedText>

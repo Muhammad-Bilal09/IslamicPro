@@ -1,8 +1,8 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 
-const BASE_URL = "http://192.168.0.180:5000/api";
-// const BASE_URL = "http://localhost:5000/api";
+// const BASE_URL = "http://192.168.0.180:5000/api";
+const BASE_URL = "https://islamic-pro-server.vercel.app/api";
 
 export const apiClient = axios.create({
   baseURL: BASE_URL,

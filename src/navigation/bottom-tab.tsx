@@ -154,7 +154,21 @@ export function AppBottomTabNavigator() {
         }}
       />
       <Tabs.Screen
-        name="juz/[id]"
+        name="Surah/[id]"
+        options={{
+          href: null,
+          tabBarStyle: { display: 'none' },
+        }}
+      />
+      <Tabs.Screen
+        name="parah/[id]"
+        options={{
+          href: null,
+          tabBarStyle: { display: 'none' },
+        }}
+      />
+      <Tabs.Screen
+        name="Parah/[id]"
         options={{
           href: null,
           tabBarStyle: { display: 'none' },
