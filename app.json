@@ -52,7 +52,7 @@
         "expo-notifications",
         {
           "sounds": [
-            "./assets/sounds/azan.mp3"
+            "./assets/sounds/azan.wav"
           ]
         }
       ],

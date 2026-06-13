@@ -94,10 +94,19 @@ export function QiblaScreen() {
                 },
               ]}
             >
-              {/* Needle pointer */}
-              <View style={[styles.needle, { transform: [{ rotate: needleRotation }] }]}>
-                <View style={styles.needleTop} />
-                <View style={styles.needleBottom} />
+              {/* North Pointer (Compass Needle pointing to N) */}
+              <View style={[styles.northNeedle, { transform: [{ rotate: '0deg' }] }]}>
+                <View style={styles.northNeedleTop} />
+                <View style={styles.northNeedleBottom} />
+              </View>
+
+              {/* Qibla Pointer (Green Needle pointing to Kaaba with Kaaba icon at the tip) */}
+              <View style={[styles.qiblaNeedle, { transform: [{ rotate: needleRotation }] }]}>
+                <View style={styles.kaabaIconContainer}>
+                  <ThemedText style={{ fontSize: 20 }}>🕋</ThemedText>
+                </View>
+                <View style={styles.qiblaNeedleTop} />
+                <View style={styles.qiblaNeedleBottom} />
               </View>
               {/* Center dot */}
               <View style={[styles.centerDot, { backgroundColor: '#854D0E', borderColor: theme.cardBackground }]} />

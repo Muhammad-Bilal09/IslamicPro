@@ -1,5 +1,5 @@
-import { StyleSheet } from 'react-native';
 import { Spacing } from '@/constants/theme';
+import { StyleSheet } from 'react-native';
 
 export const styles = StyleSheet.create({
   safeArea: { flex: 1 },
@@ -10,7 +10,6 @@ export const styles = StyleSheet.create({
     gap: Spacing.three,
   },
 
-  // ── Hero ──
   heroCard: {
     padding: 0,
     overflow: 'hidden',

@@ -1,31 +1,33 @@
-import { useEffect, useState } from 'react';
+import { useAlert } from '@/context/alert-context';
+import { useAuth } from '@/context/auth-context';
+import { checkAndScheduleNotifications, triggerTestNotification } from '@/utils/notifications';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAudioPlayer, useAudioPlayerStatus } from 'expo-audio';
 import { useRouter } from 'expo-router';
-import { useAlert } from '@/context/alert-context';
-import { checkAndScheduleNotifications, triggerTestNotification } from '@/utils/notifications';
+import { useEffect, useState } from 'react';
 
 export const METHOD_NAMES: Record<number, string> = {
-  1: 'Karachi (UISK)',
-  2: 'ISNA (North America)',
-  3: 'Muslim World League (MWL)',
-  4: 'Umm Al-Qura (Makkah)',
-  5: 'Egyptian Authority',
-  8: 'Gulf Region',
-  11: 'Singapore (MUIS)',
-  13: 'Turkey (Diyanet)',
+  1: 'Karachi',
+  2: 'North America',
+  3: 'MWL',
+  4: 'Makkah',
+  5: 'Egypt',
+  8: 'Gulf',
+  11: 'Singapore',
+  13: 'Turkey',
 };
 
 export const SCHOOL_NAMES: Record<number, string> = {
-  0: 'Standard (Shafi\'i)',
+  0: 'Shafi',
   1: 'Hanafi',
 };
 
 export const useSettings = () => {
   const router = useRouter();
   const { showAlert } = useAlert();
+  const { logout } = useAuth();
 
-  const player = useAudioPlayer(require('../../../assets/sounds/azan.mp3'));
+  const player = useAudioPlayer(require('../../../assets/sounds/azan.wav'));
   const playerStatus = useAudioPlayerStatus(player);
   const isPlaying = playerStatus.playing;
 
@@ -192,5 +194,6 @@ export const useSettings = () => {
     handleTestAlert,
     handleSelectMethod,
     handleSelectSchool,
+    logout,
   };
 };

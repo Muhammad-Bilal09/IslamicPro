@@ -1,13 +1,12 @@
-import React from 'react';
-import { Pressable, ScrollView, Switch, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
 import { ThemedText } from '@/components/themed-text';
 import { useTheme } from '@/hooks/use-theme';
 import { RowProps } from '@/types/type';
+import { Ionicons } from '@expo/vector-icons';
+import { Pressable, ScrollView, Switch, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { useSettings, METHOD_NAMES, SCHOOL_NAMES } from './UseSettings';
 import { styles } from './SettingsStyle';
+import { METHOD_NAMES, SCHOOL_NAMES, useSettings } from './UseSettings';
 
 function Row({ label, icon, toggle, value, onToggle, onPress, detail, isLast }: RowProps) {
   const theme = useTheme();
@@ -33,7 +32,7 @@ function Row({ label, icon, toggle, value, onToggle, onPress, detail, isLast }: 
       ) : (
         <View style={styles.rowRight}>
           {detail && (
-            <ThemedText style={styles.rowDetail} themeColor="textSecondary">
+            <ThemedText numberOfLines={1} ellipsizeMode="tail" style={styles.rowDetail} themeColor="textSecondary">
               {detail}
             </ThemedText>
           )}
@@ -68,6 +67,7 @@ export function SettingsScreen() {
     handleTestAlert,
     handleSelectMethod,
     handleSelectSchool,
+    logout,
   } = useSettings();
 
   return (
@@ -151,8 +151,6 @@ export function SettingsScreen() {
             isLast
           />
         </View>
-
-        {/* Prayer */}
         <ThemedText style={styles.groupLabel} themeColor="textSecondary">
           Prayer
         </ThemedText>
@@ -185,6 +183,7 @@ export function SettingsScreen() {
 
         {/* Sign Out */}
         <Pressable
+          onPress={logout}
           style={[styles.signOutBtn, { backgroundColor: '#FEF2F2', borderColor: '#FECACA' }]}
         >
           <Ionicons name="log-out-outline" size={20} color="#DC2626" />

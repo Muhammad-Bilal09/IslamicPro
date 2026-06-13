@@ -2,12 +2,7 @@ import { useEffect, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Location from 'expo-location';
 
-let SensorsModule: any = null;
-try {
-  SensorsModule = require('expo-sensors');
-} catch (err) {
-  console.warn('[QiblaScreen] expo-sensors is not supported on this platform:', err);
-}
+// Sensors are handled via Location API compass heading
 
 export const useQibla = () => {
   const [city, setCity] = useState('London, UK');
@@ -170,39 +165,38 @@ export const useQibla = () => {
   useEffect(() => {
     calibrateLocation();
 
-    let subscription: any = null;
+    let headingSubscription: any = null;
 
-    if (SensorsModule && SensorsModule.Magnetometer) {
-      SensorsModule.Magnetometer.isAvailableAsync()
-        .then((available: boolean) => {
-          setHasMagnetometer(available);
-          if (available) {
-            SensorsModule.Magnetometer.setUpdateInterval(100);
-            subscription = SensorsModule.Magnetometer.addListener((data: any) => {
-              let { x, y } = data;
-              let angle = Math.atan2(y, x) * (180 / Math.PI);
-              let headingDeg = Math.round(angle);
-              if (headingDeg < 0) headingDeg += 360;
-              setHeading(headingDeg);
-            });
-          }
-        })
-        .catch((err: any) => {
-          console.warn('[QiblaScreen] Magnetometer is not available:', err);
+    const startWatchingHeading = async () => {
+      try {
+        const { status } = await Location.getForegroundPermissionsAsync();
+        if (status !== 'granted') {
+          console.warn('[QiblaScreen] Location permission not granted. Cannot watch heading.');
+          return;
+        }
+
+        headingSubscription = await Location.watchHeadingAsync((data) => {
+          const headingVal = data.trueHeading >= 0 ? data.trueHeading : data.magneticHeading;
+          setHeading(Math.round(headingVal));
+          setHasMagnetometer(true);
         });
-    }
+      } catch (err) {
+        console.warn('[QiblaScreen] Failed to start heading watch:', err);
+        setHasMagnetometer(false);
+      }
+    };
+
+    startWatchingHeading();
 
     return () => {
-      if (subscription) {
-        subscription.remove();
+      if (headingSubscription) {
+        headingSubscription.remove();
       }
     };
   }, []);
 
   const dialRotation = hasMagnetometer ? `${360 - heading}deg` : '0deg';
-  const needleRotation = hasMagnetometer
-    ? `${(qiblaBearing - heading + 360) % 360}deg`
-    : `${qiblaBearing}deg`;
+  const needleRotation = `${qiblaBearing}deg`;
 
   return {
     city,

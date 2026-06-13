@@ -78,25 +78,52 @@ export const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  needle: {
+  // North Needle (Standard compass pointer pointing to N)
+  northNeedle: {
     position: 'absolute',
-    width: 16,
-    height: '75%',
+    width: 12,
+    height: '80%',
     alignItems: 'center',
   },
-  needleTop: {
-    width: 14,
+  northNeedleTop: {
+    width: 10,
     height: '50%',
-    backgroundColor: '#854D0E',
-    borderTopLeftRadius: 7,
-    borderTopRightRadius: 7,
+    backgroundColor: '#EF4444', // Bright Red for North
+    borderTopLeftRadius: 5,
+    borderTopRightRadius: 5,
   },
-  needleBottom: {
-    width: 8,
+  northNeedleBottom: {
+    width: 6,
     height: '50%',
-    backgroundColor: '#C4A882',
-    borderBottomLeftRadius: 4,
-    borderBottomRightRadius: 4,
+    backgroundColor: '#CBD5E1', // Light Silver/Gray
+    borderBottomLeftRadius: 3,
+    borderBottomRightRadius: 3,
+  },
+
+  // Qibla Needle (Dedicated green pointer pointing to Kaaba)
+  qiblaNeedle: {
+    position: 'absolute',
+    width: 20,
+    height: '80%',
+    alignItems: 'center',
+  },
+  qiblaNeedleTop: {
+    width: 3,
+    height: '45%',
+    backgroundColor: '#10B981', // Emerald Green
+  },
+  kaabaIconContainer: {
+    position: 'absolute',
+    top: -24,
+    width: 32,
+    height: 32,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  qiblaNeedleBottom: {
+    width: 3,
+    height: '45%',
+    backgroundColor: 'transparent', // Only show the green top pointer and Kaaba icon
   },
   centerDot: {
     position: 'absolute',
