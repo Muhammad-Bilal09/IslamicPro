@@ -1,22 +1,21 @@
-import React from 'react';
-import {
-  ScrollView,
-  View,
-  Pressable,
-  Modal,
-  ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { FormInput } from '@/components/auth/form-input';
+import ProgressBar from '@/components/progress-bar';
+import { ThemedText } from '@/components/themed-text';
+import { useTheme } from '@/hooks/use-theme';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { useTheme } from '@/hooks/use-theme';
-import ProgressBar from '@/components/progress-bar';
-import { FormInput } from '@/components/auth/form-input';
-import { ThemedText } from '@/components/themed-text';
-import { useProfile } from './UseProfile';
+import {
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  Pressable,
+  ScrollView,
+  View,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { styles } from './ProfileStyle';
+import { useProfile } from './UseProfile';
 
 export function ProfileScreen() {
   const theme = useTheme();
@@ -63,14 +62,7 @@ export function ProfileScreen() {
           <ThemedText style={styles.email} themeColor="textSecondary">
             {user?.email ?? ''}{user?.gender ? `  •  ${user.gender}` : ''}
           </ThemedText>
-          {/* Streak Badge */}
-          <View style={[styles.streakBadge, { backgroundColor: theme.primary }]}>
-            <Ionicons name="flame" size={14} color="#FCD34D" />
-            <ThemedText style={styles.streakText}>12 Day Streak</ThemedText>
-          </View>
         </View>
-
-        {/* Stats */}
         <View style={[styles.statsRow, { backgroundColor: theme.cardBackground, borderColor: theme.border }]}>
           <View style={styles.stat}>
             <ThemedText style={[styles.statValue, { color: theme.primary }]}>65%</ThemedText>

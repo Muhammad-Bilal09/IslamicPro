@@ -49,6 +49,10 @@ export async function configureNotificationChannel(): Promise<void> {
         bypassDnd: true,
         showBadge: true,
         lockscreenVisibility: Notifications.AndroidNotificationVisibility.PUBLIC,
+        audioAttributes: {
+          usage: Notifications.AndroidAudioUsage.NOTIFICATION,
+          contentType: Notifications.AndroidAudioContentType.SONIFICATION,
+        },
       });
       await Notifications.setNotificationChannelAsync('prayer-alerts-azan-v2', {
         name: 'Prayer Alerts (Adhan Sound)',
@@ -59,6 +63,10 @@ export async function configureNotificationChannel(): Promise<void> {
         bypassDnd: true,
         showBadge: true,
         lockscreenVisibility: Notifications.AndroidNotificationVisibility.PUBLIC,
+        audioAttributes: {
+          usage: Notifications.AndroidAudioUsage.ALARM,
+          contentType: Notifications.AndroidAudioContentType.SONIFICATION,
+        },
       });
       console.log('[NotificationService] Android notification channels configured.');
     } catch (err) {
@@ -246,7 +254,7 @@ export async function schedulePrayerNotifications(
               },
               trigger: {
                 type: Notifications.SchedulableTriggerInputTypes.DATE,
-                date: triggerDate,
+                date: triggerDate.getTime(),
               },
             });
             scheduleCount++;
@@ -281,8 +289,8 @@ export async function schedulePrayerNotifications(
       );
     }
 
-    // Save scheduling date to prevent redundant runs on the same day unless permission was denied
-    if (!exactAlarmPermissionDenied) {
+    // Save scheduling date to prevent redundant runs on the same day unless permission was denied or no notifications were scheduled
+    if (!exactAlarmPermissionDenied && scheduleCount > 0) {
       const todayStr = getTodayDateString();
       await AsyncStorage.setItem('last_scheduled_date', todayStr);
     }
@@ -302,11 +310,16 @@ export async function checkAndScheduleNotifications(
 
     if (!force && lastScheduledDate === todayStr) {
       console.log('[NotificationService] Notifications already scheduled for today. Skipping check.');
+      const activeCount = await getScheduledNotificationsCount();
+      console.log(`[NotificationService] Current active notifications in OS: ${activeCount}`);
       return;
     }
 
     console.log('[NotificationService] Triggering scheduler (force = ' + force + ').');
     await schedulePrayerNotifications();
+
+    const activeCount = await getScheduledNotificationsCount();
+    console.log(`[NotificationService] Reschedule completed. Current active notifications in OS: ${activeCount}`);
   } catch (error) {
     console.error('[NotificationService] Error in checkAndScheduleNotifications:', error);
   }
@@ -359,5 +372,16 @@ export async function triggerTestNotification(): Promise<string | null> {
   } catch (error) {
     console.error('[NotificationService] Error triggering test notification:', error);
     return null;
+  }
+}
+
+export async function getScheduledNotificationsCount(): Promise<number> {
+  if (Platform.OS === 'web' || !Notifications) return 0;
+  try {
+    const scheduled = await Notifications.getAllScheduledNotificationsAsync();
+    return scheduled.length;
+  } catch (error) {
+    console.error('[NotificationService] Error getting scheduled notifications count:', error);
+    return 0;
   }
 }

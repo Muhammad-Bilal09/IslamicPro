@@ -1,6 +1,6 @@
 import { useAlert } from '@/context/alert-context';
 import { useAuth } from '@/context/auth-context';
-import { checkAndScheduleNotifications, triggerTestNotification } from '@/utils/notifications';
+import { checkAndScheduleNotifications, triggerTestNotification, getScheduledNotificationsCount } from '@/utils/notifications';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAudioPlayer, useAudioPlayerStatus } from 'expo-audio';
 import { useRouter } from 'expo-router';
@@ -97,9 +97,12 @@ export const useSettings = () => {
   const handleTestAlert = async () => {
     const id = await triggerTestNotification();
     if (id) {
+      const count = await getScheduledNotificationsCount();
       showAlert(
         'Test Alert Scheduled ✅',
-        'You will receive a test prayer notification in 5 seconds. Please put the app in the background.',
+        `You will receive a test prayer notification in 5 seconds. Please put the app in the background.
+
+Active scheduled alerts in system: ${count}`,
         [{ text: 'OK' }]
       );
     } else {
@@ -126,8 +129,8 @@ export const useSettings = () => {
       'Calculation Method',
       'Choose calculation authority:',
       [
-        { text: 'Karachi (UISK)', onPress: () => updateMethod(1) },
-        { text: 'ISNA (North America)', onPress: () => updateMethod(2) },
+        { text: 'Karachi ', onPress: () => updateMethod(1) },
+        { text: 'North America', onPress: () => updateMethod(2) },
         {
           text: 'More Options...',
           onPress: () => {
@@ -135,9 +138,9 @@ export const useSettings = () => {
               'More Calculation Methods',
               'Choose calculation authority:',
               [
-                { text: 'Muslim World League (MWL)', onPress: () => updateMethod(3) },
-                { text: 'Umm Al-Qura (Makkah)', onPress: () => updateMethod(4) },
-                { text: 'Egyptian General Authority', onPress: () => updateMethod(5) },
+                { text: 'MWL', onPress: () => updateMethod(3) },
+                { text: 'Makkah', onPress: () => updateMethod(4) },
+                { text: 'Egypt', onPress: () => updateMethod(5) },
               ]
             );
           }
@@ -162,7 +165,7 @@ export const useSettings = () => {
       'Choose the school for calculating Asr prayer time:',
       [
         {
-          text: 'Standard (Shafi\'i, Maliki, Hanbali)',
+          text: 'Shafi',
           onPress: () => updateSchool(0),
         },
         {
