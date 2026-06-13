@@ -1,2 +1,2 @@
-import { PrayerScreen } from '@/screens/PrayerScreen';
+import { PrayerScreen } from '@/screens/prayer/PrayerScreen';
 export default PrayerScreen;

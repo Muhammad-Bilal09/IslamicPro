@@ -89,7 +89,8 @@ export function convert24hTo12h(time24: string): string {
 export async function fetchPrayerTimesByCity(
   city: string,
   country: string,
-  method = 2
+  method = 2,
+  school = 0
 ): Promise<PrayerData> {
   const todayStr = getTodayDateString();
 
@@ -100,6 +101,7 @@ export async function fetchPrayerTimesByCity(
         city: city.trim(),
         country: country.trim(),
         method,
+        school,
       },
     }
   );
@@ -118,7 +120,8 @@ export async function fetchPrayerTimesByCity(
 export async function fetchPrayerTimesByCoords(
   latitude: number,
   longitude: number,
-  method = 2
+  method = 2,
+  school = 0
 ): Promise<PrayerData> {
   const timestamp = Math.floor(Date.now() / 1000);
   const response = await aladhanApi.get<{ code: number; data: PrayerData }>(
@@ -128,6 +131,7 @@ export async function fetchPrayerTimesByCoords(
         latitude,
         longitude,
         method,
+        school,
       },
     }
   );
@@ -150,6 +154,7 @@ export async function fetchPrayerCalendar(
   lat: number | undefined,
   lng: number | undefined,
   method = 2,
+  school = 0,
   year: number,
   month: number
 ): Promise<CalendarDayData[]> {
@@ -162,6 +167,7 @@ export async function fetchPrayerCalendar(
           latitude: lat,
           longitude: lng,
           method,
+          school,
         },
       }
     );
@@ -173,6 +179,7 @@ export async function fetchPrayerCalendar(
           city: city.trim(),
           country: country.trim(),
           method,
+          school,
         },
       }
     );
@@ -196,12 +203,13 @@ export async function getOrFetchPrayerCalendar(
   lat: number | undefined,
   lng: number | undefined,
   method = 2,
+  school = 0,
   year: number,
   month: number
 ): Promise<CalendarDayData[]> {
   const cacheKey = useGps && lat !== undefined && lng !== undefined
-    ? `prayer_cal_gps_${year}_${month}_m${method}`
-    : `prayer_cal_city_${city.toLowerCase().trim()}_${country.toLowerCase().trim()}_${year}_${month}_m${method}`;
+    ? `prayer_cal_gps_${year}_${month}_m${method}_s${school}`
+    : `prayer_cal_city_${city.toLowerCase().trim()}_${country.toLowerCase().trim()}_${year}_${month}_m${method}_s${school}`;
 
   try {
     const cached = await AsyncStorage.getItem(cacheKey);
@@ -216,7 +224,7 @@ export async function getOrFetchPrayerCalendar(
   }
 
   console.log(`[PrayerApi] Cache miss for ${cacheKey}. Fetching calendar...`);
-  const data = await fetchPrayerCalendar(city, country, useGps, lat, lng, method, year, month);
+  const data = await fetchPrayerCalendar(city, country, useGps, lat, lng, method, school, year, month);
 
   try {
     await AsyncStorage.setItem(cacheKey, JSON.stringify(data));

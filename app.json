@@ -8,7 +8,11 @@
     "scheme": "islamicpro",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "icon": "./assets/expo.icon"
+      "icon": "./assets/expo.icon",
+      "bundleIdentifier": "yes",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -22,7 +26,9 @@
         "android.permission.RECORD_AUDIO",
         "android.permission.MODIFY_AUDIO_SETTINGS",
         "android.permission.FOREGROUND_SERVICE",
-        "android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK"
+        "android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK",
+        "android.permission.POST_NOTIFICATIONS",
+        "android.permission.SCHEDULE_EXACT_ALARM"
       ],
       "package": "com.r_bilal.IslamicPro"
     },
@@ -42,12 +48,26 @@
           }
         }
       ],
+      [
+        "expo-notifications",
+        {
+          "sounds": [
+            "./assets/sounds/azan.mp3"
+          ]
+        }
+      ],
       "expo-audio",
       "expo-asset"
     ],
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "38113d55-1fde-4528-bd3a-6ca850e48749"
+      }
     }
   }
 }

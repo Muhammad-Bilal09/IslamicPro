@@ -1,0 +1,196 @@
+import { useEffect, useState } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useAudioPlayer, useAudioPlayerStatus } from 'expo-audio';
+import { useRouter } from 'expo-router';
+import { useAlert } from '@/context/alert-context';
+import { checkAndScheduleNotifications, triggerTestNotification } from '@/utils/notifications';
+
+export const METHOD_NAMES: Record<number, string> = {
+  1: 'Karachi (UISK)',
+  2: 'ISNA (North America)',
+  3: 'Muslim World League (MWL)',
+  4: 'Umm Al-Qura (Makkah)',
+  5: 'Egyptian Authority',
+  8: 'Gulf Region',
+  11: 'Singapore (MUIS)',
+  13: 'Turkey (Diyanet)',
+};
+
+export const SCHOOL_NAMES: Record<number, string> = {
+  0: 'Standard (Shafi\'i)',
+  1: 'Hanafi',
+};
+
+export const useSettings = () => {
+  const router = useRouter();
+  const { showAlert } = useAlert();
+
+  const player = useAudioPlayer(require('../../../assets/sounds/azan.mp3'));
+  const playerStatus = useAudioPlayerStatus(player);
+  const isPlaying = playerStatus.playing;
+
+  const [prayerReminder, setPrayerReminder] = useState(true);
+  const [dailyAyah, setDailyAyah] = useState(true);
+  const [sound, setSound] = useState(true);
+  const [darkMode, setDarkMode] = useState(false);
+  const [calculationMethod, setCalculationMethod] = useState(2);
+  const [juristicSchool, setJuristicSchool] = useState(0);
+
+  useEffect(() => {
+    return () => {
+      try {
+        player.pause();
+      } catch (_) { }
+    };
+  }, [player]);
+
+  useEffect(() => {
+    const loadSettings = async () => {
+      try {
+        const storedReminder = await AsyncStorage.getItem('prayer_reminders_enabled');
+        if (storedReminder !== null) {
+          setPrayerReminder(storedReminder === 'true');
+        }
+        const storedAdhanSound = await AsyncStorage.getItem('adhan_sound_enabled');
+        if (storedAdhanSound !== null) {
+          setSound(storedAdhanSound === 'true');
+        }
+        const storedMethod = await AsyncStorage.getItem('prayer_method');
+        if (storedMethod !== null) {
+          setCalculationMethod(parseInt(storedMethod, 10));
+        }
+        const storedSchool = await AsyncStorage.getItem('prayer_school');
+        if (storedSchool !== null) {
+          setJuristicSchool(parseInt(storedSchool, 10));
+        }
+      } catch (error) {
+        console.error('Failed to load settings:', error);
+      }
+    };
+    loadSettings();
+  }, []);
+
+  const handleToggleReminder = async () => {
+    const newVal = !prayerReminder;
+    setPrayerReminder(newVal);
+    try {
+      await AsyncStorage.setItem('prayer_reminders_enabled', newVal ? 'true' : 'false');
+      await checkAndScheduleNotifications(null, true);
+    } catch (error) {
+      console.error('Failed to save prayer reminders setting:', error);
+    }
+  };
+
+  const handleToggleSound = async () => {
+    const newVal = !sound;
+    setSound(newVal);
+    try {
+      await AsyncStorage.setItem('adhan_sound_enabled', newVal ? 'true' : 'false');
+      await checkAndScheduleNotifications(null, true);
+    } catch (error) {
+      console.error('Failed to save adhan sound setting:', error);
+    }
+  };
+
+  const handleTestAlert = async () => {
+    const id = await triggerTestNotification();
+    if (id) {
+      showAlert(
+        'Test Alert Scheduled ✅',
+        'You will receive a test prayer notification in 5 seconds. Please put the app in the background.',
+        [{ text: 'OK' }]
+      );
+    } else {
+      showAlert(
+        'Alert Failed ❌',
+        'Could not schedule notification. Please check that notification permissions are enabled for this app in your device settings.',
+        [{ text: 'OK' }]
+      );
+    }
+  };
+
+  const updateMethod = async (methodId: number) => {
+    setCalculationMethod(methodId);
+    try {
+      await AsyncStorage.setItem('prayer_method', methodId.toString());
+      await checkAndScheduleNotifications(null, true);
+    } catch (error) {
+      console.error('Failed to save calculation method:', error);
+    }
+  };
+
+  const handleSelectMethod = () => {
+    showAlert(
+      'Calculation Method',
+      'Choose calculation authority:',
+      [
+        { text: 'Karachi (UISK)', onPress: () => updateMethod(1) },
+        { text: 'ISNA (North America)', onPress: () => updateMethod(2) },
+        {
+          text: 'More Options...',
+          onPress: () => {
+            showAlert(
+              'More Calculation Methods',
+              'Choose calculation authority:',
+              [
+                { text: 'Muslim World League (MWL)', onPress: () => updateMethod(3) },
+                { text: 'Umm Al-Qura (Makkah)', onPress: () => updateMethod(4) },
+                { text: 'Egyptian General Authority', onPress: () => updateMethod(5) },
+              ]
+            );
+          }
+        },
+      ]
+    );
+  };
+
+  const updateSchool = async (schoolId: number) => {
+    setJuristicSchool(schoolId);
+    try {
+      await AsyncStorage.setItem('prayer_school', schoolId.toString());
+      await checkAndScheduleNotifications(null, true);
+    } catch (error) {
+      console.error('Failed to save juristic school:', error);
+    }
+  };
+
+  const handleSelectSchool = () => {
+    showAlert(
+      'Select Juristic School (Asr)',
+      'Choose the school for calculating Asr prayer time:',
+      [
+        {
+          text: 'Standard (Shafi\'i, Maliki, Hanbali)',
+          onPress: () => updateSchool(0),
+        },
+        {
+          text: 'Hanafi',
+          onPress: () => updateSchool(1),
+        },
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+      ]
+    );
+  };
+
+  return {
+    router,
+    player,
+    isPlaying,
+    prayerReminder,
+    dailyAyah,
+    setDailyAyah,
+    sound,
+    darkMode,
+    setDarkMode,
+    calculationMethod,
+    juristicSchool,
+    handleToggleReminder,
+    handleToggleSound,
+    handleTestAlert,
+    handleSelectMethod,
+    handleSelectSchool,
+  };
+};

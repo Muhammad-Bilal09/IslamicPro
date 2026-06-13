@@ -1,2 +1,2 @@
-import { MoreScreen } from '@/screens/MoreScreen';
+import { MoreScreen } from '@/screens/more/MoreScreen';
 export default MoreScreen;

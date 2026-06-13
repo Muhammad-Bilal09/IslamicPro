@@ -5,10 +5,10 @@ import { View, ActivityIndicator, StyleSheet } from 'react-native';
 
 import { AppBottomTabNavigator } from '@/navigation/bottom-tab';
 import { AuthProvider, useAuth } from '@/context/auth-context';
-import { RegisterScreen } from '@/screens/RegisterScreen';
-import { LoginScreen } from '@/screens/LoginScreen';
-import { ForgotPasswordScreen } from '@/screens/ForgotPasswordScreen';
-import { LocationSetupScreen } from '@/screens/LocationSetupScreen';
+import { RegisterScreen } from '@/screens/register/RegisterScreen';
+import { LoginScreen } from '@/screens/login/LoginScreen';
+import { ForgotPasswordScreen } from '@/screens/forgotPassword/ForgotPasswordScreen';
+import { LocationSetupScreen } from '@/screens/locationSetup/LocationSetupScreen';
 import { Colors } from '@/constants/theme';
 import { checkAndScheduleNotifications } from '@/utils/notifications';
 
@@ -57,13 +57,17 @@ function RootNavigator() {
   return <AppBottomTabNavigator />;
 }
 
+import { AlertProvider } from '@/context/alert-context';
+
 export default function RootLayout() {
   const colorScheme = useColorScheme();
 
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
       <AuthProvider>
-        <RootNavigator />
+        <AlertProvider>
+          <RootNavigator />
+        </AlertProvider>
       </AuthProvider>
     </ThemeProvider>
   );

@@ -16,7 +16,7 @@ export interface HeaderProps {
 }
 
 export function Header({
-  title = 'Noor',
+  title = 'Islamic',
   showSearch = false,
   onSearchPress,
   onSettingsPress,

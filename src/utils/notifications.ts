@@ -5,7 +5,7 @@ import { CalendarDayData, getOrFetchPrayerCalendar } from './prayerApi';
 let Notifications: any = null;
 try {
   if (Platform.OS !== 'web') {
-    // Dynamically require to avoid crash during app initialization in Expo Go
+    // Dynamically require to avoid crash during app initialization in Expo Go (SDK 53+)
     Notifications = require('expo-notifications');
   }
 } catch (error) {
@@ -37,30 +37,35 @@ interface UserLocation {
   lng?: number;
 }
 
-/**
- * Configure the Android notification channel for prayer alerts.
- */
 export async function configureNotificationChannel(): Promise<void> {
   if (Platform.OS === 'android' && Notifications) {
     try {
-      await Notifications.setNotificationChannelAsync('prayer-alerts', {
-        name: 'Prayer Alerts',
+      await Notifications.setNotificationChannelAsync('prayer-alerts-default', {
+        name: 'Prayer Alerts (Default Sound)',
         importance: Notifications.AndroidImportance.MAX,
         vibrationPattern: [0, 250, 250, 250],
         lightColor: '#FF231F7C',
         sound: 'default',
+        bypassDnd: true,
+        showBadge: true,
+        lockscreenVisibility: Notifications.AndroidNotificationVisibility.PUBLIC,
       });
-      console.log('[NotificationService] Android notification channel configured.');
+      await Notifications.setNotificationChannelAsync('prayer-alerts-azan', {
+        name: 'Prayer Alerts (Adhan Sound)',
+        importance: Notifications.AndroidImportance.MAX,
+        vibrationPattern: [0, 250, 250, 250],
+        lightColor: '#FF231F7C',
+        sound: 'azan', // Android raw resource name should not include the file extension
+        bypassDnd: true,
+        showBadge: true,
+        lockscreenVisibility: Notifications.AndroidNotificationVisibility.PUBLIC,
+      });
+      console.log('[NotificationService] Android notification channels configured.');
     } catch (err) {
-      console.warn('[NotificationService] Failed to set notification channel:', err);
+      console.warn('[NotificationService] Failed to set notification channels:', err);
     }
   }
 }
-
-/**
- * Requests permission for local notifications.
- * Returns true if permission is granted, false otherwise.
- */
 export async function requestNotificationPermissions(): Promise<boolean> {
   if (Platform.OS === 'web' || !Notifications) {
     console.log('[NotificationService] Notifications are not supported on this platform/client.');
@@ -83,9 +88,6 @@ export async function requestNotificationPermissions(): Promise<boolean> {
   }
 }
 
-/**
- * Cancels all scheduled local notifications.
- */
 export async function cancelAllScheduledNotifications(): Promise<void> {
   if (Platform.OS === 'web' || !Notifications) return;
   try {
@@ -96,10 +98,6 @@ export async function cancelAllScheduledNotifications(): Promise<void> {
   }
 }
 
-/**
- * Schedules notifications for the next 10 days based on cached/fetched calendar timings.
- * Falls back to scheduling only today's timings if calendar fetch fails.
- */
 export async function schedulePrayerNotifications(
   timings?: Record<string, string>,
   toggles?: Record<string, boolean>
@@ -110,20 +108,24 @@ export async function schedulePrayerNotifications(
   }
 
   try {
-    // 1. Cancel previous notifications to prevent duplicates
     await cancelAllScheduledNotifications();
 
-    // 2. Request permission first
     const hasPermission = await requestNotificationPermissions();
     if (!hasPermission) {
       console.log('[NotificationService] No notification permissions granted. Cannot schedule.');
       return;
     }
 
-    // 3. Configure Android notification channel
+    const globalRemindersVal = await AsyncStorage.getItem('prayer_reminders_enabled');
+    const globalRemindersEnabled = globalRemindersVal !== 'false';
+    if (!globalRemindersEnabled) {
+      await cancelAllScheduledNotifications();
+      console.log('[NotificationService] Global prayer reminders disabled. Cancelled all alerts.');
+      return;
+    }
+
     await configureNotificationChannel();
 
-    // 4. Resolve toggles
     let activeToggles = toggles;
     if (!activeToggles) {
       const storedToggles = await AsyncStorage.getItem('prayer_alerts');
@@ -137,6 +139,12 @@ export async function schedulePrayerNotifications(
       };
     }
 
+    // 4b. Resolve Adhan sound preference
+    const storedAdhanSound = await AsyncStorage.getItem('adhan_sound_enabled');
+    const isAdhanEnabled = storedAdhanSound !== 'false';
+    const soundFile = isAdhanEnabled ? (Platform.OS === 'android' ? 'azan' : 'azan.mp3') : 'default';
+    const channelId = isAdhanEnabled ? 'prayer-alerts-azan' : 'prayer-alerts-default';
+
     // 5. Get location info from AsyncStorage
     const storedCity = await AsyncStorage.getItem('prayer_city');
     const storedCountry = await AsyncStorage.getItem('prayer_country');
@@ -144,6 +152,7 @@ export async function schedulePrayerNotifications(
     const storedLat = await AsyncStorage.getItem('prayer_lat');
     const storedLng = await AsyncStorage.getItem('prayer_lng');
     const storedMethod = await AsyncStorage.getItem('prayer_method');
+    const storedSchool = await AsyncStorage.getItem('prayer_school');
 
     const city = storedCity || 'London';
     const country = storedCountry || 'United Kingdom';
@@ -151,6 +160,7 @@ export async function schedulePrayerNotifications(
     const lat = storedLat ? parseFloat(storedLat) : undefined;
     const lng = storedLng ? parseFloat(storedLng) : undefined;
     const methodId = storedMethod ? parseInt(storedMethod, 10) : 2;
+    const schoolId = storedSchool ? parseInt(storedSchool, 10) : 0;
 
     // Generate date list for the next 10 days
     const datesToSchedule: Date[] = [];
@@ -175,7 +185,7 @@ export async function schedulePrayerNotifications(
     for (const item of monthsNeeded) {
       try {
         const calData = await getOrFetchPrayerCalendar(
-          city, country, useGps, lat, lng, methodId, item.year, item.month
+          city, country, useGps, lat, lng, methodId, schoolId, item.year, item.month
         );
         calendars[`${item.year}-${item.month}`] = calData;
       } catch (err) {
@@ -215,16 +225,15 @@ export async function schedulePrayerNotifications(
         const triggerDate = new Date(targetDate);
         triggerDate.setHours(hour, minute, 0, 0);
 
-        // Schedule only future alerts
         if (triggerDate.getTime() > Date.now()) {
           try {
             await Notifications.scheduleNotificationAsync({
               content: {
                 title: `Prayer Alert: ${prayerName}`,
                 body: `It's time for ${prayerName} prayer.`,
-                sound: 'default',
+                sound: soundFile,
                 data: { prayerName },
-                ...(Platform.OS === 'android' ? { channelId: 'prayer-alerts' } : {}),
+                ...(Platform.OS === 'android' ? { channelId } : {}),
               },
               trigger: {
                 type: Notifications.SchedulableTriggerInputTypes.DATE,
@@ -250,9 +259,6 @@ export async function schedulePrayerNotifications(
   }
 }
 
-/**
- * Checks if the notification scheduler has run today. If not, or if force is true, schedules them.
- */
 export async function checkAndScheduleNotifications(
   location?: UserLocation | null,
   force = false
@@ -273,9 +279,6 @@ export async function checkAndScheduleNotifications(
   }
 }
 
-/**
- * Helper to get date string in YYYY-MM-DD format based on local time.
- */
 function getTodayDateString(): string {
   const d = new Date();
   const day = d.getDate().toString().padStart(2, '0');
@@ -284,9 +287,6 @@ function getTodayDateString(): string {
   return `${year}-${month}-${day}`;
 }
 
-/**
- * Triggers a test notification after 5 seconds.
- */
 export async function triggerTestNotification(): Promise<string | null> {
   if (Platform.OS === 'web' || !Notifications) {
     console.log('[NotificationService] Notifications are not supported on this platform/client.');
@@ -302,13 +302,18 @@ export async function triggerTestNotification(): Promise<string | null> {
 
     await configureNotificationChannel();
 
+    const storedAdhanSound = await AsyncStorage.getItem('adhan_sound_enabled');
+    const isAdhanEnabled = storedAdhanSound !== 'false';
+    const soundFile = isAdhanEnabled ? (Platform.OS === 'android' ? 'azan' : 'azan.mp3') : 'default';
+    const channelId = isAdhanEnabled ? 'prayer-alerts-azan' : 'prayer-alerts-default';
+
     const identifier = await Notifications.scheduleNotificationAsync({
       content: {
         title: 'Test Adhan Alert 🕌',
         body: 'This is a test prayer notification from IslamicPro.',
-        sound: 'default',
+        sound: soundFile,
         data: { prayerName: 'Test' },
-        ...(Platform.OS === 'android' ? { channelId: 'prayer-alerts' } : {}),
+        ...(Platform.OS === 'android' ? { channelId } : {}),
       },
       trigger: {
         type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,

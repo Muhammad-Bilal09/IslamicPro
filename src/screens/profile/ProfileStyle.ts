@@ -1,0 +1,199 @@
+import { StyleSheet, Platform } from 'react-native';
+import { Spacing } from '@/constants/theme';
+
+export const styles = StyleSheet.create({
+  safe: { flex: 1 },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: Spacing.four,
+    height: 56,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+  },
+  headerTitle: { fontSize: 17, fontWeight: '700' },
+  content: { padding: Spacing.four, gap: Spacing.two },
+
+  /* Avatar */
+  avatarSection: { alignItems: 'center', paddingVertical: Spacing.four, gap: Spacing.two },
+  avatar: {
+    width: 88,
+    height: 88,
+    borderRadius: 44,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  initials: { fontSize: 32, fontWeight: '800' },
+  name: { fontSize: 22, fontWeight: '700' },
+  email: { fontSize: 14 },
+  streakBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 14,
+    paddingVertical: 5,
+    borderRadius: 20,
+  },
+  streakText: { fontSize: 13, fontWeight: '600', color: '#FFFFFF' },
+
+  /* Stats */
+  statsRow: {
+    flexDirection: 'row',
+    borderRadius: 16,
+    borderWidth: StyleSheet.hairlineWidth,
+    overflow: 'hidden',
+    marginVertical: Spacing.two,
+  },
+  stat: { flex: 1, alignItems: 'center', paddingVertical: Spacing.three },
+  statValue: { fontSize: 22, fontWeight: '700' },
+  statLabel: { fontSize: 12, marginTop: 2 },
+  statDivider: { width: StyleSheet.hairlineWidth },
+
+  /* Cards */
+  sectionLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    letterSpacing: 0.5,
+    marginTop: Spacing.three,
+    marginLeft: Spacing.one,
+  },
+  card: {
+    borderRadius: 16,
+    borderWidth: StyleSheet.hairlineWidth,
+    padding: Spacing.four,
+    gap: Spacing.two,
+  },
+  progressRow: { flexDirection: 'row', justifyContent: 'space-between' },
+  progressTitle: { fontSize: 15, fontWeight: '600' },
+  progressPct: { fontSize: 15, fontWeight: '700' },
+  progressSub: { fontSize: 12 },
+  bar: { marginTop: Spacing.one },
+
+  /* Activity */
+  activityRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.three,
+    paddingVertical: 10,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+  },
+  activityIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  activityText: { flex: 1, fontSize: 14 },
+  activityTime: { fontSize: 12 },
+
+  /* Buttons */
+  editBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: Spacing.two,
+    marginTop: Spacing.four,
+    paddingVertical: 14,
+    borderRadius: 16,
+  },
+  editBtnText: { fontSize: 15, fontWeight: '600', color: '#FFFFFF' },
+  logoutBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: Spacing.two,
+    marginTop: Spacing.two,
+    paddingVertical: 14,
+    borderRadius: 16,
+    borderWidth: 1,
+  },
+  logoutText: { fontSize: 15, fontWeight: '600', color: '#DC2626' },
+
+  /* Modal Styles */
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+  },
+  modalKeyboard: {
+    width: '100%',
+  },
+  modalContent: {
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
+    borderWidth: 1,
+    paddingHorizontal: Spacing.five,
+    paddingTop: Spacing.five,
+    paddingBottom: Platform.OS === 'ios' ? 40 : Spacing.five,
+    maxHeight: '90%',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: Spacing.four,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+  },
+  modalActions: {
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: Spacing.four,
+  },
+  modalCancelBtn: {
+    flex: 1,
+    height: 50,
+    borderRadius: 12,
+    borderWidth: 1.5,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalCancelText: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  modalSaveBtn: {
+    flex: 1.5,
+    height: 50,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    elevation: 3,
+  },
+  modalSaveText: {
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  inputLabel: {
+    fontSize: 13,
+    fontWeight: '600',
+    marginBottom: Spacing.one,
+    marginLeft: Spacing.one,
+  },
+  genderContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginBottom: Spacing.four,
+    marginTop: Spacing.one,
+  },
+  genderOption: {
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 20,
+    borderWidth: 1.5,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  genderText: {
+    fontSize: 13.5,
+    fontWeight: '600',
+  },
+});

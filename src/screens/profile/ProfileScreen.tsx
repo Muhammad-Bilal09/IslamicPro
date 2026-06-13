@@ -1,92 +1,42 @@
-import React, { useState } from 'react';
-import { StyleSheet, ScrollView, View, Pressable, Alert, Modal, ActivityIndicator, KeyboardAvoidingView, Platform } from 'react-native';
+import React from 'react';
+import {
+  ScrollView,
+  View,
+  Pressable,
+  Modal,
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useTheme } from '@/hooks/use-theme';
-import { Spacing } from '@/constants/theme';
-import { ThemedText } from '@/components/themed-text';
 import ProgressBar from '@/components/progress-bar';
 import { FormInput } from '@/components/auth/form-input';
-import { useAuth } from '@/context/auth-context';
+import { ThemedText } from '@/components/themed-text';
+import { useProfile } from './UseProfile';
+import { styles } from './ProfileStyle';
 
 export function ProfileScreen() {
   const theme = useTheme();
   const router = useRouter();
-  const { user, logout, updateProfile } = useAuth();
-
-  // State for Edit Modal
-  const [isEditModalVisible, setIsEditModalVisible] = useState(false);
-  const [name, setName] = useState(user?.name ?? '');
-  const [gender, setGender] = useState(user?.gender ?? '');
-
-  const [isUpdating, setIsUpdating] = useState(false);
-  const [fieldErrors, setFieldErrors] = useState<{
-    name?: string;
-  }>({});
-
-  const resetErrorStates = () => {
-    setFieldErrors({});
-  };
-
-  const openEditModal = () => {
-    setName(user?.name ?? '');
-    setGender(user?.gender ?? '');
-    resetErrorStates();
-    setIsEditModalVisible(true);
-  };
-
-  const validate = () => {
-    const errors: typeof fieldErrors = {};
-    if (!name.trim()) {
-      errors.name = 'Full name is required';
-    }
-
-    setFieldErrors(errors);
-    return Object.keys(errors).length === 0;
-  };
-
-  const handleUpdateProfile = async () => {
-    if (!validate()) return;
-    setIsUpdating(true);
-    try {
-      await updateProfile(name.trim(), gender);
-      setIsEditModalVisible(false);
-      Alert.alert('Success', 'Profile updated successfully!');
-    } catch (err: any) {
-      const msg = err.response?.data?.message || err.message || 'Failed to update profile';
-      Alert.alert('Error', msg);
-    } finally {
-      setIsUpdating(false);
-    }
-  };
-
-  const handleLogout = () => {
-    Alert.alert(
-      'Log Out',
-      'Are you sure you want to log out?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Log Out',
-          style: 'destructive',
-          onPress: async () => {
-            await logout();
-          },
-        },
-      ]
-    );
-  };
-
-  // Derive initials for avatar
-  const initials = user?.name
-    ? user.name
-        .split(' ')
-        .map((n) => n[0])
-        .slice(0, 2)
-        .join('')
-        .toUpperCase()
-    : '?';
+  const {
+    user,
+    isEditModalVisible,
+    setIsEditModalVisible,
+    name,
+    setName,
+    gender,
+    setGender,
+    isUpdating,
+    fieldErrors,
+    setFieldErrors,
+    openEditModal,
+    handleUpdateProfile,
+    handleLogout,
+    initials,
+  } = useProfile();
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: theme.background }]} edges={['top']}>
@@ -301,199 +251,4 @@ export function ProfileScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  safe: { flex: 1 },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: Spacing.four,
-    height: 56,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-  },
-  headerTitle: { fontSize: 17, fontWeight: '700' },
-  content: { padding: Spacing.four, gap: Spacing.two },
-
-  /* Avatar */
-  avatarSection: { alignItems: 'center', paddingVertical: Spacing.four, gap: Spacing.two },
-  avatar: {
-    width: 88,
-    height: 88,
-    borderRadius: 44,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  initials: { fontSize: 32, fontWeight: '800' },
-  name: { fontSize: 22, fontWeight: '700' },
-  email: { fontSize: 14 },
-  streakBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 14,
-    paddingVertical: 5,
-    borderRadius: 20,
-  },
-  streakText: { fontSize: 13, fontWeight: '600', color: '#FFFFFF' },
-
-  /* Stats */
-  statsRow: {
-    flexDirection: 'row',
-    borderRadius: 16,
-    borderWidth: StyleSheet.hairlineWidth,
-    overflow: 'hidden',
-    marginVertical: Spacing.two,
-  },
-  stat: { flex: 1, alignItems: 'center', paddingVertical: Spacing.three },
-  statValue: { fontSize: 22, fontWeight: '700' },
-  statLabel: { fontSize: 12, marginTop: 2 },
-  statDivider: { width: StyleSheet.hairlineWidth },
-
-  /* Cards */
-  sectionLabel: {
-    fontSize: 12,
-    fontWeight: '600',
-    letterSpacing: 0.5,
-    marginTop: Spacing.three,
-    marginLeft: Spacing.one,
-  },
-  card: {
-    borderRadius: 16,
-    borderWidth: StyleSheet.hairlineWidth,
-    padding: Spacing.four,
-    gap: Spacing.two,
-  },
-  progressRow: { flexDirection: 'row', justifyContent: 'space-between' },
-  progressTitle: { fontSize: 15, fontWeight: '600' },
-  progressPct: { fontSize: 15, fontWeight: '700' },
-  progressSub: { fontSize: 12 },
-  bar: { marginTop: Spacing.one },
-
-  /* Activity */
-  activityRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.three,
-    paddingVertical: 10,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-  },
-  activityIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  activityText: { flex: 1, fontSize: 14 },
-  activityTime: { fontSize: 12 },
-
-  /* Buttons */
-  editBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: Spacing.two,
-    marginTop: Spacing.four,
-    paddingVertical: 14,
-    borderRadius: 16,
-  },
-  editBtnText: { fontSize: 15, fontWeight: '600', color: '#FFFFFF' },
-  logoutBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: Spacing.two,
-    marginTop: Spacing.two,
-    paddingVertical: 14,
-    borderRadius: 16,
-    borderWidth: 1,
-  },
-  logoutText: { fontSize: 15, fontWeight: '600', color: '#DC2626' },
-  
-  /* Modal Styles */
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'flex-end',
-  },
-  modalKeyboard: {
-    width: '100%',
-  },
-  modalContent: {
-    borderTopLeftRadius: 28,
-    borderTopRightRadius: 28,
-    borderWidth: 1,
-    paddingHorizontal: Spacing.five,
-    paddingTop: Spacing.five,
-    paddingBottom: Platform.OS === 'ios' ? 40 : Spacing.five,
-    maxHeight: '90%',
-  },
-  modalHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: Spacing.four,
-  },
-  modalTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-  },
-  modalActions: {
-    flexDirection: 'row',
-    gap: 12,
-    marginTop: Spacing.four,
-  },
-  modalCancelBtn: {
-    flex: 1,
-    height: 50,
-    borderRadius: 12,
-    borderWidth: 1.5,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  modalCancelText: {
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  modalSaveBtn: {
-    flex: 1.5,
-    height: 50,
-    borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
-    elevation: 3,
-  },
-  modalSaveText: {
-    fontSize: 14,
-    fontWeight: '700',
-  },
-  inputLabel: {
-    fontSize: 13,
-    fontWeight: '600',
-    marginBottom: Spacing.one,
-    marginLeft: Spacing.one,
-  },
-  genderContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-    marginBottom: Spacing.four,
-    marginTop: Spacing.one,
-  },
-  genderOption: {
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 20,
-    borderWidth: 1.5,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  genderText: {
-    fontSize: 13.5,
-    fontWeight: '600',
-  },
-});
+export default ProfileScreen;

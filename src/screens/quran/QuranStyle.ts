@@ -1,0 +1,108 @@
+import { Platform, StyleSheet } from 'react-native';
+import { Spacing } from '@/constants/theme';
+
+export const styles = StyleSheet.create({
+  safeArea: { flex: 1 },
+  contentWrapper: { flex: 1, paddingHorizontal: Spacing.two },
+  listContent: { paddingBottom: 110 },
+
+  // ── Shared header ──
+  headerContainer: { width: '100%' },
+  paddedItem: { paddingHorizontal: Spacing.two, marginBottom: Spacing.two },
+
+  // ── Last Read ──
+  lastReadCard: { marginHorizontal: Spacing.two, marginTop: Spacing.two, marginBottom: Spacing.three },
+  lastReadHeader: { flexDirection: 'row', alignItems: 'center', gap: Spacing.one, marginBottom: Spacing.three },
+  lastReadLabel: { fontSize: 11, fontWeight: 'bold', letterSpacing: 1 },
+  lastReadBody: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end' },
+  surahInfo: { gap: 4 },
+  surahName: { fontSize: 22, fontWeight: 'bold' },
+  ayahNumber: { fontSize: 13, opacity: 0.9 },
+  continueButton: {
+    backgroundColor: '#FFFFFF',
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: Spacing.three,
+    paddingVertical: Spacing.two,
+    borderRadius: 24,
+    gap: Spacing.one,
+  },
+  continueButtonText: { fontSize: 12, fontWeight: 'bold' },
+
+  // ── Para cards ──
+  paraHeaderSummary: { paddingHorizontal: Spacing.two, marginBottom: Spacing.three, gap: Spacing.two },
+  paraSummaryBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.two,
+    alignSelf: 'flex-start',
+    paddingHorizontal: Spacing.three,
+    paddingVertical: Spacing.one,
+    borderRadius: 20,
+  },
+  paraSummaryText: { fontSize: 13, fontWeight: '700' },
+  paraSummaryHint: { fontSize: 12, marginLeft: 2 },
+  paraColumnWrapper: { justifyContent: 'space-between', paddingHorizontal: Spacing.one },
+  paraCardOuter: { marginHorizontal: Spacing.one, marginBottom: Spacing.two },
+  paraCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderRadius: 18,
+    borderWidth: 1,
+    overflow: 'hidden',
+    paddingRight: Spacing.three,
+    paddingVertical: Spacing.two,
+    gap: Spacing.three,
+  },
+  paraNumberBadge: {
+    width: 64,
+    alignSelf: 'stretch',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: Spacing.three,
+    borderTopLeftRadius: 17,
+    borderBottomLeftRadius: 17,
+    gap: 2,
+  },
+  paraNumberText: { fontSize: 22, fontWeight: '800', color: '#FFFFFF' },
+  paraParaLabel: { fontSize: 10, fontWeight: '600', color: '#FFFFFF', opacity: 0.8, letterSpacing: 0.5 },
+  paraInfo: { flex: 1, gap: 3 },
+  paraName: { fontSize: 15, fontWeight: '700' },
+  paraArabic: { fontSize: 18, fontWeight: '500', textAlign: 'right' },
+  paraSubRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  paraSurahLabel: { fontSize: 12 },
+  paraChevronWrapper: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+
+  // ── Surah grid ──
+  gridColumnWrapper: { justifyContent: 'space-between', paddingHorizontal: Spacing.one },
+
+  // ── Loader / Error / Empty ──
+  loaderContainer: { paddingVertical: 48, justifyContent: 'center', alignItems: 'center', gap: Spacing.three },
+  loaderText: { fontSize: 14, fontWeight: '500' },
+  errorCard: { marginHorizontal: Spacing.two, marginVertical: Spacing.four, padding: Spacing.four, alignItems: 'center', gap: Spacing.two },
+  errorText: { fontSize: 14, textAlign: 'center', lineHeight: 20 },
+  retryButton: { paddingHorizontal: Spacing.four, paddingVertical: Spacing.two, borderRadius: 8, marginTop: Spacing.two },
+  retryText: { fontSize: 13, fontWeight: 'bold' },
+  emptyContainer: { paddingVertical: 48, justifyContent: 'center', alignItems: 'center' },
+  emptyText: { fontSize: 14, textAlign: 'center' },
+
+  // ── Footer ──
+  footerContainer: { width: '100%', gap: Spacing.three, marginTop: Spacing.two, paddingHorizontal: Spacing.two },
+  footerContainerWide: { flexDirection: 'row' },
+  ayahCard: { alignItems: 'center', justifyContent: 'center', paddingVertical: Spacing.four, marginHorizontal: 0 },
+  remembranceText: { fontSize: 15, fontStyle: 'italic', textAlign: 'center', fontWeight: '600', lineHeight: 22 },
+  remembranceRef: { fontSize: 11, fontWeight: 'bold', letterSpacing: 1, marginTop: Spacing.two },
+  inspirationCard: { overflow: 'hidden', padding: Spacing.four, marginHorizontal: 0 },
+  inspirationContent: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  inspirationInfo: { gap: 4 },
+  inspirationLabel: { fontSize: 12, fontWeight: 'bold' },
+  inspirationTitle: { fontSize: 18, fontWeight: 'bold' },
+  inspirationIconWrapper: { width: 64, height: 64, borderRadius: 32, justifyContent: 'center', alignItems: 'center' },
+});
+export const fontFamily = Platform.OS === 'ios' ? 'ui-serif' : 'serif';

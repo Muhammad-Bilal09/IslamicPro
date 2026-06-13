@@ -1,23 +1,13 @@
-import { ThemedText } from '@/components/themed-text';
-import { Spacing } from '@/constants/theme';
-import { useTheme } from '@/hooks/use-theme';
-import { triggerTestNotification } from '@/utils/notifications';
-import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
-import React, { useState } from 'react';
-import { Alert, Pressable, ScrollView, StyleSheet, Switch, View } from 'react-native';
+import React from 'react';
+import { Pressable, ScrollView, Switch, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
+import { ThemedText } from '@/components/themed-text';
+import { useTheme } from '@/hooks/use-theme';
+import { RowProps } from '@/types/type';
 
-interface RowProps {
-  label: string;
-  icon: React.ComponentProps<typeof Ionicons>['name'];
-  toggle?: boolean;
-  value?: boolean;
-  onToggle?: () => void;
-  onPress?: () => void;
-  detail?: string;
-  isLast?: boolean;
-}
+import { useSettings, METHOD_NAMES, SCHOOL_NAMES } from './UseSettings';
+import { styles } from './SettingsStyle';
 
 function Row({ label, icon, toggle, value, onToggle, onPress, detail, isLast }: RowProps) {
   const theme = useTheme();
@@ -61,29 +51,24 @@ function Row({ label, icon, toggle, value, onToggle, onPress, detail, isLast }: 
 
 export function SettingsScreen() {
   const theme = useTheme();
-  const router = useRouter();
-
-  const [prayerReminder, setPrayerReminder] = useState(true);
-  const [dailyAyah, setDailyAyah] = useState(true);
-  const [sound, setSound] = useState(false);
-  const [darkMode, setDarkMode] = useState(false);
-
-  const handleTestAlert = async () => {
-    const id = await triggerTestNotification();
-    if (id) {
-      Alert.alert(
-        'Test Alert Scheduled ✅',
-        'You will receive a test prayer notification in 5 seconds. Please put the app in the background.',
-        [{ text: 'OK' }]
-      );
-    } else {
-      Alert.alert(
-        'Alert Failed ❌',
-        'Could not schedule notification. Please check that notification permissions are enabled for this app in your device settings.',
-        [{ text: 'OK' }]
-      );
-    }
-  };
+  const {
+    router,
+    player,
+    isPlaying,
+    prayerReminder,
+    dailyAyah,
+    setDailyAyah,
+    sound,
+    darkMode,
+    setDarkMode,
+    calculationMethod,
+    juristicSchool,
+    handleToggleReminder,
+    handleToggleSound,
+    handleTestAlert,
+    handleSelectMethod,
+    handleSelectSchool,
+  } = useSettings();
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: theme.background }]} edges={['top']}>
@@ -107,7 +92,7 @@ export function SettingsScreen() {
             label="Prayer Reminders"
             toggle
             value={prayerReminder}
-            onToggle={() => setPrayerReminder((v) => !v)}
+            onToggle={handleToggleReminder}
           />
           <Row
             icon="book-outline"
@@ -121,7 +106,23 @@ export function SettingsScreen() {
             label="Adhan Sound"
             toggle
             value={sound}
-            onToggle={() => setSound((v) => !v)}
+            onToggle={handleToggleSound}
+          />
+          <Row
+            icon={isPlaying ? "pause-outline" : "play-outline"}
+            label={isPlaying ? "Pause Adhan Preview" : "Preview Adhan Sound"}
+            onPress={() => {
+              try {
+                if (isPlaying) {
+                  player.pause();
+                } else {
+                  player.seekTo(0);
+                  player.play();
+                }
+              } catch (err) {
+                console.error('Failed to preview Adhan:', err);
+              }
+            }}
           />
           <Row
             icon="notifications-outline"
@@ -157,7 +158,19 @@ export function SettingsScreen() {
         </ThemedText>
         <View style={[styles.group, { backgroundColor: theme.cardBackground, borderColor: theme.border }]}>
           <Row icon="compass-outline" label="Qibla Method" detail="GPS" />
-          <Row icon="calculator-outline" label="Calculation Method" detail="MWL" isLast />
+          <Row
+            icon="calculator-outline"
+            label="Calculation Method"
+            detail={METHOD_NAMES[calculationMethod] || 'ISNA (North America)'}
+            onPress={handleSelectMethod}
+          />
+          <Row
+            icon="calendar-outline"
+            label="Juristic School (Asr)"
+            detail={SCHOOL_NAMES[juristicSchool] || 'Standard (Shafi\'i)'}
+            onPress={handleSelectSchool}
+            isLast
+          />
         </View>
 
         {/* General */}
@@ -165,7 +178,7 @@ export function SettingsScreen() {
           General
         </ThemedText>
         <View style={[styles.group, { backgroundColor: theme.cardBackground, borderColor: theme.border }]}>
-          <Row icon="information-circle-outline" label="About Noor" detail="v1.0.0" />
+          <Row icon="information-circle-outline" label="About IslamicPro" detail="v1.0.0" />
           <Row icon="help-circle-outline" label="Help & FAQ" />
           <Row icon="mail-outline" label="Contact Us" isLast />
         </View>
@@ -182,53 +195,4 @@ export function SettingsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  safe: { flex: 1 },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: Spacing.four,
-    height: 56,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-  },
-  headerTitle: { fontSize: 17, fontWeight: '700' },
-  content: { padding: Spacing.four, paddingBottom: 100, gap: Spacing.two },
-  groupLabel: {
-    fontSize: 12,
-    fontWeight: '600',
-    letterSpacing: 0.5,
-    marginTop: Spacing.three,
-    marginBottom: Spacing.one,
-    marginLeft: Spacing.one,
-  },
-  group: {
-    borderRadius: 16,
-    borderWidth: StyleSheet.hairlineWidth,
-    overflow: 'hidden',
-  },
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: Spacing.four,
-    paddingVertical: 14,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-  },
-  rowLeft: { flexDirection: 'row', alignItems: 'center', gap: Spacing.three, flex: 1 },
-  rowIcon: { width: 24 },
-  rowLabel: { fontSize: 15 },
-  rowRight: { flexDirection: 'row', alignItems: 'center', gap: Spacing.two },
-  rowDetail: { fontSize: 14 },
-  signOutBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: Spacing.two,
-    marginTop: Spacing.four,
-    paddingVertical: 14,
-    borderRadius: 16,
-    borderWidth: 1,
-  },
-  signOutText: { fontSize: 15, fontWeight: '600', color: '#DC2626' },
-});
+export default SettingsScreen;
