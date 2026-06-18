@@ -1,8 +1,6 @@
-import { useEffect, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Location from 'expo-location';
-
-// Sensors are handled via Location API compass heading
+import { useEffect, useState } from 'react';
 
 export const useQibla = () => {
   const [city, setCity] = useState('London, UK');
@@ -176,7 +174,7 @@ export const useQibla = () => {
         }
 
         headingSubscription = await Location.watchHeadingAsync((data) => {
-          const headingVal = data.trueHeading >= 0 ? data.trueHeading : data.magneticHeading;
+          const headingVal = data.trueHeading >= 0 ? data.trueHeading : data.magHeading;
           setHeading(Math.round(headingVal));
           setHasMagnetometer(true);
         });

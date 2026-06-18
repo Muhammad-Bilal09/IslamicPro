@@ -1,7 +1,7 @@
 import { FormInput } from '@/components/auth/form-input';
-import ProgressBar from '@/components/progress-bar';
 import { ThemedText } from '@/components/themed-text';
 import { useTheme } from '@/hooks/use-theme';
+import { useScreenData } from '@/hooks/UseScreenData';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import {
@@ -36,12 +36,12 @@ export function ProfileScreen() {
     handleLogout,
     initials,
   } = useProfile();
+  const { genderOptions } = useScreenData();
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: theme.background }]} edges={['top']}>
-      {/* Header */}
       <View style={[styles.header, { borderBottomColor: theme.border }]}>
-        <Pressable onPress={() => router.back()} hitSlop={10}>
+         <Pressable onPress={() => router.back()} hitSlop={10}>
           <Ionicons name="arrow-back" size={24} color={theme.text} />
         </Pressable>
         <ThemedText style={styles.headerTitle}>My Profile</ThemedText>
@@ -51,7 +51,6 @@ export function ProfileScreen() {
       </View>
 
       <ScrollView contentContainerStyle={styles.content}>
-        {/* Avatar + Name */}
         <View style={styles.avatarSection}>
           <View style={[styles.avatar, { backgroundColor: theme.primaryLight }]}>
             <ThemedText style={[styles.initials, { color: theme.primary }]}>
@@ -63,69 +62,7 @@ export function ProfileScreen() {
             {user?.email ?? ''}{user?.gender ? `  •  ${user.gender}` : ''}
           </ThemedText>
         </View>
-        <View style={[styles.statsRow, { backgroundColor: theme.cardBackground, borderColor: theme.border }]}>
-          <View style={styles.stat}>
-            <ThemedText style={[styles.statValue, { color: theme.primary }]}>65%</ThemedText>
-            <ThemedText style={styles.statLabel} themeColor="textSecondary">Quran</ThemedText>
-          </View>
-          <View style={[styles.statDivider, { backgroundColor: theme.border }]} />
-          <View style={styles.stat}>
-            <ThemedText style={[styles.statValue, { color: theme.accent }]}>1,250</ThemedText>
-            <ThemedText style={styles.statLabel} themeColor="textSecondary">Tasbih</ThemedText>
-          </View>
-          <View style={[styles.statDivider, { backgroundColor: theme.border }]} />
-          <View style={styles.stat}>
-            <ThemedText style={[styles.statValue, { color: theme.success }]}>12</ThemedText>
-            <ThemedText style={styles.statLabel} themeColor="textSecondary">Streak</ThemedText>
-          </View>
-        </View>
 
-        {/* Reading Progress */}
-        <ThemedText style={styles.sectionLabel} themeColor="textSecondary">
-          Reading Progress
-        </ThemedText>
-        <View style={[styles.card, { backgroundColor: theme.cardBackground, borderColor: theme.border }]}>
-          <View style={styles.progressRow}>
-            <ThemedText style={styles.progressTitle}>Al-Baqarah</ThemedText>
-            <ThemedText style={[styles.progressPct, { color: theme.primary }]}>64%</ThemedText>
-          </View>
-          <ThemedText style={styles.progressSub} themeColor="textSecondary">
-            Ayah 183 of 286
-          </ThemedText>
-          <ProgressBar progress={0.64} height={6} progressColor={theme.primary} style={styles.bar} />
-        </View>
-
-        {/* Recent Activity */}
-        <ThemedText style={styles.sectionLabel} themeColor="textSecondary">
-          Recent Activity
-        </ThemedText>
-        <View style={[styles.card, { backgroundColor: theme.cardBackground, borderColor: theme.border }]}>
-          {[
-            { icon: 'book-outline' as const, text: 'Read Al-Baqarah', time: '2h ago' },
-            { icon: 'radio-button-on-outline' as const, text: 'Completed 99 Tasbih', time: '5h ago' },
-            { icon: 'calendar-outline' as const, text: 'All 5 Prayers done', time: 'Yesterday' },
-            { icon: 'heart-outline' as const, text: 'Weekly Sadaqah', time: '2d ago' },
-          ].map((item, i, arr) => (
-            <View
-              key={item.text}
-              style={[
-                styles.activityRow,
-                { borderBottomColor: theme.border },
-                i === arr.length - 1 && { borderBottomWidth: 0 },
-              ]}
-            >
-              <View style={[styles.activityIcon, { backgroundColor: theme.primaryLight }]}>
-                <Ionicons name={item.icon} size={16} color={theme.primary} />
-              </View>
-              <ThemedText style={styles.activityText}>{item.text}</ThemedText>
-              <ThemedText style={styles.activityTime} themeColor="textSecondary">
-                {item.time}
-              </ThemedText>
-            </View>
-          ))}
-        </View>
-
-        {/* Edit & Logout */}
         <Pressable
           style={[styles.editBtn, { backgroundColor: theme.primary }]}
           onPress={openEditModal}
@@ -145,7 +82,6 @@ export function ProfileScreen() {
         <View style={{ height: 40 }} />
       </ScrollView>
 
-      {/* Edit Profile Modal */}
       <Modal
         visible={isEditModalVisible}
         animationType="slide"
@@ -158,7 +94,6 @@ export function ProfileScreen() {
             style={styles.modalKeyboard}
           >
             <View style={[styles.modalContent, { backgroundColor: theme.cardBackground, borderColor: theme.border }]}>
-              {/* Modal Header */}
               <View style={styles.modalHeader}>
                 <ThemedText style={styles.modalTitle}>Edit Profile</ThemedText>
                 <Pressable onPress={() => setIsEditModalVisible(false)} hitSlop={10}>
@@ -167,7 +102,6 @@ export function ProfileScreen() {
               </View>
 
               <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
-                {/* Inputs */}
                 <FormInput
                   label="Full Name"
                   iconName="person-outline"
@@ -180,7 +114,7 @@ export function ProfileScreen() {
 
                 <ThemedText style={styles.inputLabel} themeColor="textSecondary">Gender</ThemedText>
                 <View style={styles.genderContainer}>
-                  {['Male', 'Female', 'Other', 'Prefer not to say'].map((g) => {
+                  {genderOptions.map((g) => {
                     const isSelected = gender === g;
                     return (
                       <Pressable
@@ -206,7 +140,6 @@ export function ProfileScreen() {
                   })}
                 </View>
 
-                {/* Save & Cancel buttons */}
                 <View style={styles.modalActions}>
                   <Pressable
                     style={({ pressed }) => [

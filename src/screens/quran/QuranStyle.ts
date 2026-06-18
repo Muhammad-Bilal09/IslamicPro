@@ -1,16 +1,14 @@
-import { Platform, StyleSheet } from 'react-native';
 import { Spacing } from '@/constants/theme';
+import { Platform, StyleSheet } from 'react-native';
 
 export const styles = StyleSheet.create({
   safeArea: { flex: 1 },
   contentWrapper: { flex: 1, paddingHorizontal: Spacing.two },
   listContent: { paddingBottom: 110 },
 
-  // ── Shared header ──
   headerContainer: { width: '100%' },
   paddedItem: { paddingHorizontal: Spacing.two, marginBottom: Spacing.two },
 
-  // ── Last Read ──
   lastReadCard: { marginHorizontal: Spacing.two, marginTop: Spacing.two, marginBottom: Spacing.three },
   lastReadHeader: { flexDirection: 'row', alignItems: 'center', gap: Spacing.one, marginBottom: Spacing.three },
   lastReadLabel: { fontSize: 11, fontWeight: 'bold', letterSpacing: 1 },
@@ -29,7 +27,6 @@ export const styles = StyleSheet.create({
   },
   continueButtonText: { fontSize: 12, fontWeight: 'bold' },
 
-  // ── Para cards ──
   paraHeaderSummary: { paddingHorizontal: Spacing.two, marginBottom: Spacing.three, gap: Spacing.two },
   paraSummaryBadge: {
     flexDirection: 'row',
@@ -79,10 +76,8 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
   },
 
-  // ── Surah grid ──
   gridColumnWrapper: { justifyContent: 'space-between', paddingHorizontal: Spacing.one },
 
-  // ── Loader / Error / Empty ──
   loaderContainer: { paddingVertical: 48, justifyContent: 'center', alignItems: 'center', gap: Spacing.three },
   loaderText: { fontSize: 14, fontWeight: '500' },
   errorCard: { marginHorizontal: Spacing.two, marginVertical: Spacing.four, padding: Spacing.four, alignItems: 'center', gap: Spacing.two },
@@ -92,7 +87,6 @@ export const styles = StyleSheet.create({
   emptyContainer: { paddingVertical: 48, justifyContent: 'center', alignItems: 'center' },
   emptyText: { fontSize: 14, textAlign: 'center' },
 
-  // ── Footer ──
   footerContainer: { width: '100%', gap: Spacing.three, marginTop: Spacing.two, paddingHorizontal: Spacing.two },
   footerContainerWide: { flexDirection: 'row' },
   ayahCard: { alignItems: 'center', justifyContent: 'center', paddingVertical: Spacing.four, marginHorizontal: 0 },

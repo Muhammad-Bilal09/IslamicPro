@@ -44,7 +44,6 @@ apiClient.interceptors.response.use(
   },
 );
 
-// Quran API Client (alquran.cloud)
 export const quranApi = axios.create({
   baseURL: "https://api.alquran.cloud/v1",
   timeout: 15_000,
@@ -63,7 +62,6 @@ quranApi.interceptors.response.use(
   },
 );
 
-// Prayer Times API Client (aladhan.com)
 export const aladhanApi = axios.create({
   baseURL: "https://api.aladhan.com/v1",
   timeout: 15_000,

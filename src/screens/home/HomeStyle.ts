@@ -1,5 +1,5 @@
-import { StyleSheet } from 'react-native';
 import { Spacing } from '@/constants/theme';
+import { StyleSheet } from 'react-native';
 
 export const styles = StyleSheet.create({
   safeArea: {
@@ -7,7 +7,7 @@ export const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingHorizontal: Spacing.four,
-    paddingBottom: 100, // Space for custom tab bar
+    paddingBottom: 100,
   },
   prayerCard: {
     marginTop: Spacing.two,

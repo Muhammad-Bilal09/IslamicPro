@@ -3,12 +3,13 @@ import { useAuth } from '@/context/auth-context';
 import { LoginScreenProps } from '@/types/type';
 
 export const useLogin = ({ onGoToRegister, onGoToForgotPassword }: LoginScreenProps) => {
-  const { login } = useAuth();
+  const { login, continueAsGuest } = useAuth();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
   const [isLoading, setIsLoading] = useState(false);
+  const [isGuestLoading, setIsGuestLoading] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<{ email?: string; password?: string }>({});
 
@@ -39,16 +40,30 @@ export const useLogin = ({ onGoToRegister, onGoToForgotPassword }: LoginScreenPr
     }
   };
 
+  const handleContinueAsGuest = async () => {
+    setApiError(null);
+    setIsGuestLoading(true);
+    try {
+      await continueAsGuest();
+    } catch (err: any) {
+      setApiError(err.message || 'Failed to continue as guest.');
+    } finally {
+      setIsGuestLoading(false);
+    }
+  };
+
   return {
     email,
     setEmail,
     password,
     setPassword,
     isLoading,
+    isGuestLoading,
     apiError,
     setApiError,
     fieldErrors,
     setFieldErrors,
     handleLogin,
+    handleContinueAsGuest,
   };
 };

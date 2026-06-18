@@ -1,11 +1,10 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Platform, Alert, Linking } from 'react-native';
+import { Alert, Linking, Platform } from 'react-native';
 import { CalendarDayData, getOrFetchPrayerCalendar } from './prayerApi';
 
 let Notifications: any = null;
 try {
   if (Platform.OS !== 'web') {
-    // Dynamically require to avoid crash during app initialization in Expo Go (SDK 53+)
     Notifications = require('expo-notifications');
   }
 } catch (error) {
@@ -13,7 +12,6 @@ try {
   Notifications = null;
 }
 
-// Set up the notification handler behaviors if loaded
 if (Notifications && Platform.OS !== 'web') {
   try {
     Notifications.setNotificationHandler({
@@ -40,12 +38,18 @@ interface UserLocation {
 export async function configureNotificationChannel(): Promise<void> {
   if (Platform.OS === 'android' && Notifications) {
     try {
-      await Notifications.setNotificationChannelAsync('prayer-alerts-default', {
+      try {
+        await Notifications.deleteNotificationChannelAsync('prayer-alerts-default');
+        await Notifications.deleteNotificationChannelAsync('prayer-alerts-azan-v3');
+      } catch (err) {
+        console.warn('[NotificationService] Failed to delete old channels:', err);
+      }
+
+      await Notifications.setNotificationChannelAsync('prayer-alerts-default-v2', {
         name: 'Prayer Alerts (Default Sound)',
         importance: Notifications.AndroidImportance.MAX,
         vibrationPattern: [0, 250, 250, 250],
         lightColor: '#FF231F7C',
-        sound: 'default',
         bypassDnd: true,
         showBadge: true,
         lockscreenVisibility: Notifications.AndroidNotificationVisibility.PUBLIC,
@@ -54,12 +58,12 @@ export async function configureNotificationChannel(): Promise<void> {
           contentType: Notifications.AndroidAudioContentType.SONIFICATION,
         },
       });
-      await Notifications.setNotificationChannelAsync('prayer-alerts-azan-v2', {
+      await Notifications.setNotificationChannelAsync('prayer-alerts-azan-v4', {
         name: 'Prayer Alerts (Adhan Sound)',
         importance: Notifications.AndroidImportance.MAX,
         vibrationPattern: [0, 250, 250, 250],
         lightColor: '#FF231F7C',
-        sound: 'azan', // Android raw resource name should not include the file extension
+        sound: 'azan',
         bypassDnd: true,
         showBadge: true,
         lockscreenVisibility: Notifications.AndroidNotificationVisibility.PUBLIC,
@@ -153,13 +157,14 @@ export async function schedulePrayerNotifications(
       };
     }
 
-    // 4b. Resolve Adhan sound preference
     const storedAdhanSound = await AsyncStorage.getItem('adhan_sound_enabled');
     const isAdhanEnabled = storedAdhanSound !== 'false';
-    const soundFile = isAdhanEnabled ? (Platform.OS === 'android' ? 'azan' : 'azan.wav') : 'default';
-    const channelId = isAdhanEnabled ? 'prayer-alerts-azan-v2' : 'prayer-alerts-default';
+    const channelId = isAdhanEnabled ? 'prayer-alerts-azan-v4' : 'prayer-alerts-default-v2';
 
-    // 5. Get location info from AsyncStorage
+    const soundFile = isAdhanEnabled
+      ? (Platform.OS === 'ios' ? 'azan.wav' : 'azan')
+      : true;
+
     const storedCity = await AsyncStorage.getItem('prayer_city');
     const storedCountry = await AsyncStorage.getItem('prayer_country');
     const storedUseGps = await AsyncStorage.getItem('prayer_use_gps');
@@ -176,7 +181,6 @@ export async function schedulePrayerNotifications(
     const methodId = storedMethod ? parseInt(storedMethod, 10) : 2;
     const schoolId = storedSchool ? parseInt(storedSchool, 10) : 0;
 
-    // Generate date list for the next 10 days
     const datesToSchedule: Date[] = [];
     for (let i = 0; i < 10; i++) {
       const d = new Date();
@@ -184,17 +188,15 @@ export async function schedulePrayerNotifications(
       datesToSchedule.push(d);
     }
 
-    // Group dates by year and month to minimize calendar fetching
     const monthsNeeded: { year: number; month: number }[] = [];
     for (const d of datesToSchedule) {
       const y = d.getFullYear();
-      const m = d.getMonth() + 1; // 1-indexed
+      const m = d.getMonth() + 1;
       if (!monthsNeeded.some(item => item.year === y && item.month === m)) {
         monthsNeeded.push({ year: y, month: m });
       }
     }
 
-    // Load monthly calendars
     const calendars: Record<string, CalendarDayData[]> = {};
     for (const item of monthsNeeded) {
       try {
@@ -210,7 +212,6 @@ export async function schedulePrayerNotifications(
     let scheduleCount = 0;
     let exactAlarmPermissionDenied = false;
 
-    // Schedule notifications for each of the 10 days
     for (const targetDate of datesToSchedule) {
       if (exactAlarmPermissionDenied) break;
       const y = targetDate.getFullYear();
@@ -218,7 +219,6 @@ export async function schedulePrayerNotifications(
       const dayNum = targetDate.getDate();
 
       const cal = calendars[`${y}-${m}`];
-      // If we don't have calendar data for this day, fallback to current day's timings if provided
       const dayTimings = cal && cal[dayNum - 1] ? cal[dayNum - 1].timings : (targetDate.toDateString() === new Date().toDateString() ? timings : null);
 
       if (!dayTimings) continue;
@@ -254,7 +254,7 @@ export async function schedulePrayerNotifications(
               },
               trigger: {
                 type: Notifications.SchedulableTriggerInputTypes.DATE,
-                date: triggerDate.getTime(),
+                date: triggerDate,
               },
             });
             scheduleCount++;
@@ -281,15 +281,28 @@ export async function schedulePrayerNotifications(
     if (exactAlarmPermissionDenied) {
       Alert.alert(
         'Alarms & Reminders Permission',
-        'To play the Adhan exactly at prayer times, IslamicPro needs the "Alarms & reminders" permission. Please enable it in Settings.',
+        'To play the Adhan exactly at prayer times, Ameen needs the "Alarms & reminders" permission. Please enable it in Settings.',
         [
           { text: 'Cancel', style: 'cancel' },
-          { text: 'Open Settings', onPress: () => Linking.openSettings() }
+          {
+            text: 'Open Settings',
+            onPress: () => {
+              if (Platform.OS === 'android') {
+                Linking.sendIntent('android.settings.REQUEST_SCHEDULE_EXACT_ALARM', [
+                  { key: 'data', value: 'package:com.r_bilal.Ameen' }
+                ]).catch((err) => {
+                  console.warn('[NotificationService] Failed to open exact alarm settings via intent, falling back to openSettings:', err);
+                  Linking.openSettings();
+                });
+              } else {
+                Linking.openSettings();
+              }
+            }
+          }
         ]
       );
     }
 
-    // Save scheduling date to prevent redundant runs on the same day unless permission was denied or no notifications were scheduled
     if (!exactAlarmPermissionDenied && scheduleCount > 0) {
       const todayStr = getTodayDateString();
       await AsyncStorage.setItem('last_scheduled_date', todayStr);
@@ -350,13 +363,16 @@ export async function triggerTestNotification(): Promise<string | null> {
 
     const storedAdhanSound = await AsyncStorage.getItem('adhan_sound_enabled');
     const isAdhanEnabled = storedAdhanSound !== 'false';
-    const soundFile = isAdhanEnabled ? (Platform.OS === 'android' ? 'azan' : 'azan.wav') : 'default';
-    const channelId = isAdhanEnabled ? 'prayer-alerts-azan-v2' : 'prayer-alerts-default';
+    const channelId = isAdhanEnabled ? 'prayer-alerts-azan-v4' : 'prayer-alerts-default-v2';
+
+    const soundFile = isAdhanEnabled
+      ? (Platform.OS === 'ios' ? 'azan.wav' : 'azan')
+      : true;
 
     const identifier = await Notifications.scheduleNotificationAsync({
       content: {
         title: 'Test Adhan Alert 🕌',
-        body: 'This is a test prayer notification from IslamicPro.',
+        body: 'This is a test prayer notification from Ameen.',
         sound: soundFile,
         data: { prayerName: 'Test' },
         ...(Platform.OS === 'android' ? { channelId } : {}),

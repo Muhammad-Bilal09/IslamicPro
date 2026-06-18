@@ -1,5 +1,5 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { aladhanApi } from '@/utils/api';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export interface PrayerTimings {
   Fajr: string;
@@ -17,7 +17,7 @@ export interface CalendarDayData {
     readable: string;
     timestamp: string;
     gregorian: {
-      date: string; // DD-MM-YYYY
+      date: string;
       day: string;
       month: { number: number; en: string };
       year: string;
@@ -59,33 +59,29 @@ export interface CurrentAndNextPrayer {
   progress: number;
 }
 
-/**
- * Converts a 24-hour time string (e.g. "05:12" or "17:58") to a 12-hour time string with AM/PM (e.g. "05:12 AM" or "05:58 PM").
- */
+
 export function convert24hTo12h(time24: string): string {
   if (!time24) return '';
-  const cleanTime = time24.split(' ')[0]; // remove any "(GMT)" suffix if present
+  const cleanTime = time24.split(' ')[0];
   const parts = cleanTime.split(':');
   if (parts.length < 2) return time24;
-  
+
   let hour = parseInt(parts[0], 10);
   const minute = parseInt(parts[1], 10);
-  
+
   if (isNaN(hour) || isNaN(minute)) return time24;
-  
+
   const ampm = hour >= 12 ? 'PM' : 'AM';
   hour = hour % 12;
-  hour = hour ? hour : 12; // 0 hour should be 12
-  
+  hour = hour ? hour : 12;
+
   const minStr = minute.toString().padStart(2, '0');
   const hrStr = hour.toString().padStart(2, '0');
-  
+
   return `${hrStr}:${minStr} ${ampm}`;
 }
 
-/**
- * Fetches prayer times from the Aladhan API by city and country.
- */
+
 export async function fetchPrayerTimesByCity(
   city: string,
   country: string,
@@ -114,9 +110,7 @@ export async function fetchPrayerTimesByCity(
   return json.data;
 }
 
-/**
- * Fetches prayer times from the Aladhan API by latitude and longitude.
- */
+
 export async function fetchPrayerTimesByCoords(
   latitude: number,
   longitude: number,
@@ -144,9 +138,7 @@ export async function fetchPrayerTimesByCoords(
   return json.data;
 }
 
-/**
- * Fetches monthly prayer times calendar from Aladhan API.
- */
+
 export async function fetchPrayerCalendar(
   city: string,
   country: string,
@@ -193,9 +185,7 @@ export async function fetchPrayerCalendar(
   return json.data;
 }
 
-/**
- * Gets the monthly prayer calendar from cache or fetches and caches it if missing.
- */
+
 export async function getOrFetchPrayerCalendar(
   city: string,
   country: string,
@@ -235,12 +225,9 @@ export async function getOrFetchPrayerCalendar(
   return data;
 }
 
-/**
- * Calculates which prayer is currently active, which is next, and the remaining wait time.
- */
 export function getCurrentAndNextPrayer(timings: PrayerTimings): CurrentAndNextPrayer {
   const now = new Date();
-  
+
   const parseTimeToDate = (timeStr: string, dateOffset = 0) => {
     const cleanTime = timeStr.split(' ')[0];
     const [h, m] = cleanTime.split(':').map(Number);
@@ -261,13 +248,12 @@ export function getCurrentAndNextPrayer(timings: PrayerTimings): CurrentAndNextP
 
   const currentTime = now.getTime();
 
-  // Scenario 1: Current time is before today's Fajr
   if (currentTime < prayers[0].date.getTime()) {
     const tomorrowFajr = parseTimeToDate(timings.Fajr);
     const yesterdayIsha = parseTimeToDate(timings.Isha, -1);
     const totalWait = (tomorrowFajr.getTime() - yesterdayIsha.getTime()) / 1000;
     const left = (tomorrowFajr.getTime() - currentTime) / 1000;
-    
+
     return {
       current: 'Isha',
       next: 'Fajr',
@@ -278,7 +264,6 @@ export function getCurrentAndNextPrayer(timings: PrayerTimings): CurrentAndNextP
     };
   }
 
-  // Scenario 2: Current time is between Fajr and Isha today
   let currentIdx = -1;
   let nextIdx = -1;
 
@@ -298,7 +283,7 @@ export function getCurrentAndNextPrayer(timings: PrayerTimings): CurrentAndNextP
     const totalWait = (nextPrayer.date.getTime() - currentPrayer.date.getTime()) / 1000;
     const left = (nextPrayer.date.getTime() - currentTime) / 1000;
     const nextTimeStr = timings[nextPrayer.name];
-    
+
     return {
       current: currentPrayer.name,
       next: nextPrayer.name,
@@ -308,12 +293,11 @@ export function getCurrentAndNextPrayer(timings: PrayerTimings): CurrentAndNextP
       progress: Math.min(1, Math.max(0, 1 - (left / totalWait))),
     };
   } else {
-    // Scenario 3: Current time is after today's Isha
     const todayIsha = prayers[prayers.length - 1].date;
     const tomorrowFajr = parseTimeToDate(timings.Fajr, 1);
     const totalWait = (tomorrowFajr.getTime() - todayIsha.getTime()) / 1000;
     const left = (tomorrowFajr.getTime() - currentTime) / 1000;
-    
+
     return {
       current: 'Isha',
       next: 'Fajr',
@@ -325,9 +309,6 @@ export function getCurrentAndNextPrayer(timings: PrayerTimings): CurrentAndNextP
   }
 }
 
-/**
- * Returns today's date formatted as DD-MM-YYYY (local time) as required by Aladhan API.
- */
 function getTodayDateString(): string {
   const d = new Date();
   const day = d.getDate().toString().padStart(2, '0');

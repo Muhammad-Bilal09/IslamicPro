@@ -1,7 +1,7 @@
-import { useState } from 'react';
-import * as Location from 'expo-location';
-import { useAuth } from '@/context/auth-context';
 import { useAlert } from '@/context/alert-context';
+import { useAuth } from '@/context/auth-context';
+import * as Location from 'expo-location';
+import { useState } from 'react';
 
 export const useLocationSetup = () => {
   const { updateLocation, user } = useAuth();
@@ -46,7 +46,6 @@ export const useLocationSetup = () => {
           detectedCountry = results[0].country || '';
         }
       } catch {
-        // Geocode failed, use coordinates directly
       }
 
       await updateLocation({

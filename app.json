@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "IslamicPro",
-    "slug": "IslamicPro",
+    "name": "Ameen",
+    "slug": "Ameen",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "islamicpro",
+    "scheme": "ameen",
     "userInterfaceStyle": "automatic",
     "ios": {
       "icon": "./assets/expo.icon",
@@ -28,9 +28,10 @@
         "android.permission.FOREGROUND_SERVICE",
         "android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK",
         "android.permission.POST_NOTIFICATIONS",
-        "android.permission.SCHEDULE_EXACT_ALARM"
+        "android.permission.SCHEDULE_EXACT_ALARM",
+        "android.permission.USE_EXACT_ALARM"
       ],
-      "package": "com.r_bilal.IslamicPro"
+      "package": "com.r_bilal.Ameen"
     },
     "web": {
       "output": "static",

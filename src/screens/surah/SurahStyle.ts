@@ -1,5 +1,5 @@
-import { Platform, StyleSheet } from 'react-native';
 import { Spacing } from '@/constants/theme';
+import { Platform, StyleSheet } from 'react-native';
 
 export const styles = StyleSheet.create({
   safeArea: { flex: 1 },
@@ -90,7 +90,6 @@ export const styles = StyleSheet.create({
     fontFamily: Platform.OS === 'ios' ? 'ui-serif' : 'serif',
   },
   translationText: { fontSize: 14, lineHeight: 22 },
-  // ── Player panel ──────────────────────────────────────────────────────────
   playerPanel: {
     position: 'absolute',
     bottom: Spacing.four,

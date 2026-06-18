@@ -12,6 +12,7 @@ import SectionHeader from '@/components/section-header';
 import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
+import { useScreenData } from '@/hooks/UseScreenData';
 import { styles } from './HomeStyle';
 import { useHome } from './UseHome';
 
@@ -26,7 +27,12 @@ export function HomeScreen() {
     secondsLeft,
     progress,
     formatCountdown,
+    dailyAyahData,
+    isAyahLoading,
+    isDailyAyahEnabled,
+    ramadanCountdown,
   } = useHome();
+  const { getRamadanCountdownItems, quickActions, journeyItems } = useScreenData();
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]} edges={['top']}>
@@ -35,7 +41,88 @@ export function HomeScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
-        {/* Current Prayer Card */}
+        <Card
+          variant="elevated"
+          style={{
+            marginTop: Spacing.two,
+            marginBottom: Spacing.one,
+            padding: Spacing.four,
+            gap: Spacing.three,
+            borderWidth: 1,
+            borderColor: theme.primary + '20',
+          }}
+        >
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.two }}>
+              <View
+                style={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: 16,
+                  backgroundColor: theme.primaryLight,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <Ionicons name="moon" size={18} color={theme.primary} />
+              </View>
+              <View>
+                <ThemedText style={{ fontWeight: '800', fontSize: 14 }}>
+                  Ramadan Coming Soon!
+                </ThemedText>
+                <ThemedText style={{ fontSize: 11, color: theme.textSecondary, marginTop: 1 }}>
+                  Expected: Feb 8, 2027
+                </ThemedText>
+              </View>
+            </View>
+          </View>
+
+          <View style={{ flexDirection: 'row', gap: 6, marginTop: Spacing.one }}>
+            {getRamadanCountdownItems(ramadanCountdown).map((item) => (
+              <View
+                key={item.label}
+                style={{
+                  flex: 1,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  backgroundColor: theme.cardBackground,
+                  borderRadius: 12,
+                  paddingVertical: 10,
+                  borderWidth: 1,
+                  borderColor: theme.border,
+                  shadowColor: '#000',
+                  shadowOffset: { width: 0, height: 2 },
+                  shadowOpacity: 0.04,
+                  shadowRadius: 4,
+                  elevation: 1,
+                }}
+              >
+                <ThemedText
+                  style={{
+                    fontSize: 22,
+                    fontWeight: '800',
+                    color: theme.primary,
+                    fontVariant: ['tabular-nums'],
+                    marginBottom: 2,
+                  }}
+                >
+                  {String(item.value).padStart(2, '0')}
+                </ThemedText>
+                <ThemedText
+                  style={{
+                    fontSize: 9,
+                    fontWeight: '700',
+                    color: theme.textSecondary,
+                    letterSpacing: 0.8,
+                  }}
+                >
+                  {item.label}
+                </ThemedText>
+              </View>
+            ))}
+          </View>
+        </Card>
+
         <Card variant="primary" style={styles.prayerCard}>
           <View style={styles.prayerHeader}>
             <Ionicons name="sunny-outline" size={16} color={theme.textOnPrimary} />
@@ -84,112 +171,93 @@ export function HomeScreen() {
           </View>
         </Card>
 
-        <Card variant="elevated" style={styles.ayahCard}>
-          <View style={styles.ayahHeader}>
-            <Badge text="Daily Ayah" variant="primary" />
-            <Pressable style={styles.bookmarkButton} onPress={() => router.push('/quran')}>
-              <Ionicons name="book-outline" size={20} color={theme.primary} />
-            </Pressable>
-          </View>
+        {isDailyAyahEnabled && (
+          <Card variant="elevated" style={styles.ayahCard}>
+            <View style={styles.ayahHeader}>
+              <Badge text="Daily Ayah" variant="primary" />
+              <Pressable
+                style={styles.bookmarkButton}
+                onPress={() => router.push(`/surah/${dailyAyahData.surahNumber}`)}
+              >
+                <Ionicons name="book-outline" size={20} color={theme.primary} />
+              </Pressable>
+            </View>
 
-          <ThemedText style={styles.arabicText}>
-            فَإِنَّ مَعَ الْعُسْرِ يُسْرًا
-          </ThemedText>
+            {isAyahLoading ? (
+              <ActivityIndicator size="small" color={theme.primary} style={{ marginVertical: Spacing.four }} />
+            ) : (
+              <>
+                <ThemedText style={styles.arabicText}>
+                  {dailyAyahData.text}
+                </ThemedText>
 
-          <ThemedText style={styles.translationText} themeColor="textSecondary">
-            "For indeed, with hardship [will be] ease."
-          </ThemedText>
+                <ThemedText style={styles.translationText} themeColor="textSecondary">
+                  "{dailyAyahData.translation}"
+                </ThemedText>
 
-          <ThemedText style={styles.referenceText} themeColor="textSecondary">
-            Surah Ash-Sharh [94:5]
-          </ThemedText>
+                <ThemedText style={styles.referenceText} themeColor="textSecondary">
+                  Surah {dailyAyahData.surahName} [{dailyAyahData.surahNumber}:{dailyAyahData.numberInSurah}]
+                </ThemedText>
 
-          <Pressable
-            style={[styles.shareButton, { borderColor: theme.primary }]}
-            onPress={() => router.push('/quran')}
-          >
-            <Ionicons name="open-outline" size={16} color={theme.primary} />
-            <ThemedText style={[styles.shareButtonText, { color: theme.primary }]}>
-              Read Quran
-            </ThemedText>
-          </Pressable>
-        </Card>
+                <Pressable
+                  style={[styles.shareButton, { borderColor: theme.primary }]}
+                  onPress={() => router.push(`/surah/${dailyAyahData.surahNumber}`)}
+                >
+                  <Ionicons name="open-outline" size={16} color={theme.primary} />
+                  <ThemedText style={[styles.shareButtonText, { color: theme.primary }]}>
+                    Read Quran
+                  </ThemedText>
+                </Pressable>
+              </>
+            )}
+          </Card>
+        )}
 
         <View style={styles.quickActionsRow}>
-          <Pressable style={styles.quickActionPressable} onPress={() => router.push('/qibla')}>
-            <Card variant="outlined" style={styles.quickActionCard}>
-              <View style={[styles.iconCircle, { backgroundColor: '#FDF2F2' }]}>
-                <Ionicons name="compass-outline" size={24} color="#EF4444" />
-              </View>
-              <View style={styles.quickActionTextContainer}>
-                <ThemedText style={styles.quickActionTitle}>Qibla</ThemedText>
-                <ThemedText style={styles.quickActionSubtitle} themeColor="textSecondary">
-                  Find the direction towards Kaaba
-                </ThemedText>
-              </View>
-            </Card>
-          </Pressable>
-
-          <Pressable style={styles.quickActionPressable} onPress={() => router.push('/quran')}>
-            <Card variant="outlined" style={styles.quickActionCard}>
-              <View style={[styles.iconCircle, { backgroundColor: '#ECFDF5' }]}>
-                <Ionicons name="book-outline" size={24} color="#10B981" />
-              </View>
-              <View style={styles.quickActionTextContainer}>
-                <ThemedText style={styles.quickActionTitle}>Quran Audio</ThemedText>
-                <ThemedText style={styles.quickActionSubtitle} themeColor="textSecondary">
-                  Listen to recitations and read ayahs
-                </ThemedText>
-              </View>
-            </Card>
-          </Pressable>
+          {quickActions.map((action) => (
+            <Pressable
+              key={action.title}
+              style={styles.quickActionPressable}
+              onPress={() => router.push(action.route as any)}
+            >
+              <Card variant="outlined" style={styles.quickActionCard}>
+                <View style={[styles.iconCircle, { backgroundColor: action.bgColor }]}>
+                  <Ionicons name={action.icon} size={24} color={action.iconColor} />
+                </View>
+                <View style={styles.quickActionTextContainer}>
+                  <ThemedText style={styles.quickActionTitle}>{action.title}</ThemedText>
+                  <ThemedText style={styles.quickActionSubtitle} themeColor="textSecondary">
+                    {action.subtitle}
+                  </ThemedText>
+                </View>
+              </Card>
+            </Pressable>
+          ))}
         </View>
-
-        <Card variant="primary" style={styles.streakCard}>
-          <View style={styles.streakHeader}>
-            <ThemedText style={styles.streakTitle} themeColor="textOnPrimary">
-              Spiritual Path
-            </ThemedText>
-            <Badge text="12 DAY STREAK" variant="accent" />
-          </View>
-
-          <View style={styles.segmentsRow}>
-            <View style={[styles.segment, { backgroundColor: '#FFFFFF' }]} />
-            <View style={[styles.segment, { backgroundColor: '#FFFFFF' }]} />
-            <View style={[styles.segment, { backgroundColor: '#FFFFFF' }]} />
-            <View style={[styles.segment, { backgroundColor: theme.primaryDark }]} />
-            <View style={[styles.segment, { backgroundColor: theme.primaryDark }]} />
-          </View>
-
-          <ThemedText style={styles.streakTasksText} themeColor="textOnPrimary">
-            3 tasks remaining for today.
-          </ThemedText>
-        </Card>
 
         <SectionHeader title="Your Journey" rightLabel="View All" onRightPress={() => router.push('/quran')} />
 
-        <Pressable onPress={() => router.push('/quran')}>
-          <JourneyItem
-            progressValue="65%"
-            subtitle="Surah Al-Baqarah"
-            title="Reading Progress"
-            type="progress"
-          />
-        </Pressable>
+        {journeyItems.map((item) => {
+          const content = (
+            <JourneyItem
+              key={item.title}
+              progressValue={item.progressValue}
+              subtitle={item.subtitle}
+              title={item.title}
+              type={item.type}
+            />
+          );
 
-        <JourneyItem
-          progressValue="33"
-          subtitle="SubhanAllah"
-          title="Daily Dhikr Goal"
-          type="count"
-        />
+          if (item.route) {
+            return (
+              <Pressable key={item.title} onPress={() => router.push(item.route as any)}>
+                {content}
+              </Pressable>
+            );
+          }
 
-        <JourneyItem
-          progressValue="♥"
-          subtitle="Sadaqah Jariyah"
-          title="Weekly Charity"
-          type="progress"
-        />
+          return content;
+        })}
         <View style={styles.bottomSpacer} />
       </ScrollView>
     </SafeAreaView>

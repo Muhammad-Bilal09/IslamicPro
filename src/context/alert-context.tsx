@@ -1,7 +1,7 @@
-import React, { createContext, useContext, useState } from 'react';
-import { Modal, StyleSheet, View, Pressable, Text } from 'react-native';
-import { useTheme } from '@/hooks/use-theme';
 import { ThemedText } from '@/components/themed-text';
+import { useTheme } from '@/hooks/use-theme';
+import React, { createContext, useContext, useState } from 'react';
+import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 
 export interface AlertButton {
   text: string;
@@ -38,7 +38,6 @@ export const AlertProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const handleButtonPress = (btn: AlertButton) => {
     hideAlert();
     if (btn.onPress) {
-      // Delay execution slightly to allow modal closing animation to complete smoothly
       setTimeout(() => {
         btn.onPress?.();
       }, 100);

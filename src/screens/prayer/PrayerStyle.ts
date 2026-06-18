@@ -180,7 +180,6 @@ export const styles = StyleSheet.create({
     fontSize: 14,
   },
 
-  // ── Error ──
   errorBanner: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -196,7 +195,6 @@ export const styles = StyleSheet.create({
     flex: 1,
   },
 
-  // ── Calendar ──
   section: {
     gap: Spacing.two,
   },
@@ -229,7 +227,6 @@ export const styles = StyleSheet.create({
     fontWeight: '800',
   },
 
-  // ── Prayer List ──
   emptyState: {
     alignItems: 'center',
     justifyContent: 'center',
@@ -240,7 +237,6 @@ export const styles = StyleSheet.create({
     fontSize: 14,
   },
 
-  // ── Ayat Footer ──
   ayatCard: {
     alignItems: 'center',
     gap: Spacing.two,

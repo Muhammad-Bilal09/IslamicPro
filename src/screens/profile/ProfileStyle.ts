@@ -1,5 +1,5 @@
-import { StyleSheet, Platform } from 'react-native';
 import { Spacing } from '@/constants/theme';
+import { Platform, StyleSheet } from 'react-native';
 
 export const styles = StyleSheet.create({
   safe: { flex: 1 },
@@ -14,7 +14,6 @@ export const styles = StyleSheet.create({
   headerTitle: { fontSize: 17, fontWeight: '700' },
   content: { padding: Spacing.four, gap: Spacing.two },
 
-  /* Avatar */
   avatarSection: { alignItems: 'center', paddingVertical: Spacing.four, gap: Spacing.two },
   avatar: {
     width: 88,
@@ -36,7 +35,6 @@ export const styles = StyleSheet.create({
   },
   streakText: { fontSize: 13, fontWeight: '600', color: '#FFFFFF' },
 
-  /* Stats */
   statsRow: {
     flexDirection: 'row',
     borderRadius: 16,
@@ -49,7 +47,6 @@ export const styles = StyleSheet.create({
   statLabel: { fontSize: 12, marginTop: 2 },
   statDivider: { width: StyleSheet.hairlineWidth },
 
-  /* Cards */
   sectionLabel: {
     fontSize: 12,
     fontWeight: '600',
@@ -69,7 +66,6 @@ export const styles = StyleSheet.create({
   progressSub: { fontSize: 12 },
   bar: { marginTop: Spacing.one },
 
-  /* Activity */
   activityRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -87,13 +83,12 @@ export const styles = StyleSheet.create({
   activityText: { flex: 1, fontSize: 14 },
   activityTime: { fontSize: 12 },
 
-  /* Buttons */
   editBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: Spacing.two,
-    marginTop: Spacing.four,
+    marginTop: 260,
     paddingVertical: 14,
     borderRadius: 16,
   },
@@ -110,7 +105,6 @@ export const styles = StyleSheet.create({
   },
   logoutText: { fontSize: 15, fontWeight: '600', color: '#DC2626' },
 
-  /* Modal Styles */
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',

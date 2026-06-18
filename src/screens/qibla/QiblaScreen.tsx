@@ -1,4 +1,3 @@
-import React from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import { ActivityIndicator, Pressable, ScrollView, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -8,8 +7,8 @@ import Card from '@/components/card';
 import Header from '@/components/header';
 import { ThemedText } from '@/components/themed-text';
 
+import { COMPASS_SIZE, styles } from './QiblaStyle';
 import { useQibla } from './UseQibla';
-import { styles, COMPASS_SIZE } from './QiblaStyle';
 
 export function QiblaScreen() {
   const theme = useTheme();
@@ -34,7 +33,6 @@ export function QiblaScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
-        {/* Title */}
         <View style={styles.titleContainer}>
           <ThemedText style={styles.mainTitle}>Qibla Finder</ThemedText>
           <ThemedText style={styles.subtitle} themeColor="textSecondary">
@@ -44,7 +42,6 @@ export function QiblaScreen() {
           </ThemedText>
         </View>
 
-        {/* Loading Indicator */}
         {isLoading && (
           <View style={styles.loader}>
             <ActivityIndicator size="small" color={theme.primary} />
@@ -52,7 +49,6 @@ export function QiblaScreen() {
           </View>
         )}
 
-        {/* Error Notification */}
         {errorMsg && (
           <Card variant="outlined" style={styles.errorCard}>
             <Ionicons name="alert-circle" size={18} color={theme.accent} />
@@ -60,9 +56,7 @@ export function QiblaScreen() {
           </Card>
         )}
 
-        {/* Compass Dial wrapper */}
         <View style={styles.compassWrapper}>
-          {/* Compass Dial */}
           <View
             style={[
               styles.outerDial,
@@ -76,13 +70,11 @@ export function QiblaScreen() {
               },
             ]}
           >
-            {/* Direction Labels */}
             <ThemedText style={[styles.dirLabel, styles.north, { color: theme.primary }]}>N</ThemedText>
             <ThemedText style={[styles.dirLabel, styles.east]}>E</ThemedText>
             <ThemedText style={[styles.dirLabel, styles.south]}>S</ThemedText>
             <ThemedText style={[styles.dirLabel, styles.west]}>W</ThemedText>
 
-            {/* Inner Ring */}
             <View
               style={[
                 styles.innerDial,
@@ -94,13 +86,11 @@ export function QiblaScreen() {
                 },
               ]}
             >
-              {/* North Pointer (Compass Needle pointing to N) */}
               <View style={[styles.northNeedle, { transform: [{ rotate: '0deg' }] }]}>
                 <View style={styles.northNeedleTop} />
                 <View style={styles.northNeedleBottom} />
               </View>
 
-              {/* Qibla Pointer (Green Needle pointing to Kaaba with Kaaba icon at the tip) */}
               <View style={[styles.qiblaNeedle, { transform: [{ rotate: needleRotation }] }]}>
                 <View style={styles.kaabaIconContainer}>
                   <ThemedText style={{ fontSize: 20 }}>🕋</ThemedText>
@@ -108,12 +98,10 @@ export function QiblaScreen() {
                 <View style={styles.qiblaNeedleTop} />
                 <View style={styles.qiblaNeedleBottom} />
               </View>
-              {/* Center dot */}
               <View style={[styles.centerDot, { backgroundColor: '#854D0E', borderColor: theme.cardBackground }]} />
             </View>
           </View>
 
-          {/* Direction Badge */}
           <Badge
             text={`${qiblaBearing}° ${getCardinalDirection(qiblaBearing)}`}
             variant="darkGreen"
@@ -127,7 +115,6 @@ export function QiblaScreen() {
           )}
         </View>
 
-        {/* Info Card */}
         <Card variant="elevated" style={styles.infoCard}>
           <View style={styles.infoRow}>
             <View style={styles.infoCol}>
@@ -162,7 +149,6 @@ export function QiblaScreen() {
           </View>
         </Card>
 
-        {/* Action Buttons */}
         <View style={styles.buttonRow}>
           <Pressable style={[styles.outlineBtn, { borderColor: theme.border, backgroundColor: theme.cardBackground }]} onPress={forceRecalibrate}>
             <Ionicons name="navigate-outline" size={20} color={theme.text} />
@@ -170,7 +156,6 @@ export function QiblaScreen() {
           </Pressable>
         </View>
 
-        {/* Warning instructions */}
         {!hasMagnetometer && (
           <Card variant="outlined" style={styles.sensorWarningCard}>
             <Ionicons name="information-circle-outline" size={20} color={theme.textSecondary} />
@@ -186,7 +171,6 @@ export function QiblaScreen() {
   );
 }
 
-// Ensure theme hooks work
 import { useTheme } from '@/hooks/use-theme';
 
 export default QiblaScreen;

@@ -1,11 +1,10 @@
-import { StyleSheet } from 'react-native';
 import { Spacing } from '@/constants/theme';
+import { StyleSheet } from 'react-native';
 
 export const styles = StyleSheet.create({
   root: { flex: 1 },
   scroll: { flexGrow: 1, justifyContent: 'center', padding: Spacing.four },
 
-  /* Header */
   header: { alignItems: 'center', marginBottom: Spacing.five },
   logoCircle: {
     width: 76,
@@ -23,7 +22,6 @@ export const styles = StyleSheet.create({
   appName: { fontSize: 24, fontWeight: '800', marginBottom: 4 },
   tagline: { fontSize: 13.5, textAlign: 'center', lineHeight: 20, paddingHorizontal: Spacing.four },
 
-  /* Card */
   card: {
     borderRadius: 24,
     borderWidth: 1,
@@ -36,7 +34,6 @@ export const styles = StyleSheet.create({
   },
   cardTitle: { fontSize: 20, fontWeight: '700', marginBottom: Spacing.four },
 
-  /* Error banner */
   errorBanner: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -50,7 +47,6 @@ export const styles = StyleSheet.create({
   },
   errorBannerText: { fontSize: 13, color: '#DC2626', flex: 1 },
 
-  /* Submit */
   submitBtn: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -67,10 +63,8 @@ export const styles = StyleSheet.create({
   },
   submitText: { fontSize: 15.5, fontWeight: '700' },
 
-  /* Divider */
   divider: { borderTopWidth: 1, marginVertical: Spacing.four },
 
-  /* Switch */
   switchRow: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 6 },
   switchLabel: { fontSize: 13.5 },
   switchLink: { fontSize: 13.5, fontWeight: '700' },

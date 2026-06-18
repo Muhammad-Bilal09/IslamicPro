@@ -7,6 +7,63 @@ import {
   getCurrentAndNextPrayer,
   PrayerTimings,
 } from '@/utils/prayerApi';
+import { quranApi } from '@/utils/api';
+
+export interface DailyAyah {
+  text: string;
+  translation: string;
+  surahName: string;
+  surahNumber: number;
+  numberInSurah: number;
+  date: string;
+}
+
+const FALLBACK_AYAH: DailyAyah = {
+  text: 'فَإِنَّ مَعَ الْعُسْرِ يُسْرًا',
+  translation: 'For indeed, with hardship [will be] ease.',
+  surahName: 'Ash-Sharh',
+  surahNumber: 94,
+  numberInSurah: 5,
+  date: '',
+};
+
+export interface TimeRemaining {
+  days: number;
+  hours: number;
+  minutes: number;
+  seconds: number;
+  isCompleted: boolean;
+}
+
+export function getTimeUntilRamadan(): TimeRemaining {
+  const now = new Date();
+  const RAMADAN_START_DATES = [
+    new Date(2027, 1, 8, 0, 0, 0),
+    new Date(2028, 0, 28, 0, 0, 0),
+    new Date(2029, 0, 16, 0, 0, 0),
+    new Date(2030, 0, 5, 0, 0, 0),
+  ];
+
+  let nextRamadan = RAMADAN_START_DATES[0];
+  for (const date of RAMADAN_START_DATES) {
+    if (date.getTime() > now.getTime()) {
+      nextRamadan = date;
+      break;
+    }
+  }
+
+  const diffTime = nextRamadan.getTime() - now.getTime();
+  if (diffTime <= 0) {
+    return { days: 0, hours: 0, minutes: 0, seconds: 0, isCompleted: true };
+  }
+
+  const days = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+  const hours = Math.floor((diffTime / (1000 * 60 * 60)) % 24);
+  const minutes = Math.floor((diffTime / 1000 / 60) % 60);
+  const seconds = Math.floor((diffTime / 1000) % 60);
+
+  return { days, hours, minutes, seconds, isCompleted: false };
+}
 
 export const useHome = () => {
   const [city, setCity] = useState('London');
@@ -21,6 +78,26 @@ export const useHome = () => {
   const [secondsLeft, setSecondsLeft] = useState(0);
   const [totalWaitSeconds, setTotalWaitSeconds] = useState(1);
   const [progress, setProgress] = useState(0);
+
+  const [dailyAyahData, setDailyAyahData] = useState<DailyAyah>(FALLBACK_AYAH);
+  const [isAyahLoading, setIsAyahLoading] = useState(true);
+  const [isDailyAyahEnabled, setIsDailyAyahEnabled] = useState(true);
+  const [ramadanCountdown, setRamadanCountdown] = useState<TimeRemaining>({
+    days: 0,
+    hours: 0,
+    minutes: 0,
+    seconds: 0,
+    isCompleted: false,
+  });
+
+  useEffect(() => {
+    const updateCountdown = () => {
+      setRamadanCountdown(getTimeUntilRamadan());
+    };
+    updateCountdown();
+    const interval = setInterval(updateCountdown, 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   const loadSettingsAndTimings = async () => {
     setIsLoading(true);
@@ -70,9 +147,78 @@ export const useHome = () => {
     }
   };
 
+  const loadDailyAyah = async () => {
+    let enabled = true;
+    try {
+      const storedSetting = await AsyncStorage.getItem('daily_ayah_enabled');
+      enabled = storedSetting !== 'false';
+      setIsDailyAyahEnabled(enabled);
+    } catch (_) {}
+
+    if (!enabled) {
+      setIsAyahLoading(false);
+      return;
+    }
+
+    setIsAyahLoading(true);
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    const todayStr = `${year}-${month}-${day}`;
+
+    try {
+      const cached = await AsyncStorage.getItem('daily_ayah');
+      if (cached) {
+        const parsed: DailyAyah = JSON.parse(cached);
+        if (parsed.date === todayStr) {
+          setDailyAyahData(parsed);
+          setIsAyahLoading(false);
+          return;
+        }
+      }
+
+      const randomIdx = Math.floor(Math.random() * 6236) + 1;
+      const res = await quranApi.get(`/ayah/${randomIdx}/editions/quran-simple,en.asad`);
+      const data = res.data;
+
+      if (data.code === 200 && Array.isArray(data.data) && data.data.length >= 2) {
+        const arabic = data.data[0];
+        const translation = data.data[1];
+        const newAyah: DailyAyah = {
+          text: arabic.text,
+          translation: translation.text,
+          surahName: arabic.surah.englishName,
+          surahNumber: arabic.surah.number,
+          numberInSurah: arabic.numberInSurah,
+          date: todayStr,
+        };
+        await AsyncStorage.setItem('daily_ayah', JSON.stringify(newAyah));
+        setDailyAyahData(newAyah);
+      } else {
+        throw new Error('Invalid response from Quran API.');
+      }
+    } catch (err) {
+      console.error('[HomeScreen] Error loading daily ayah:', err);
+      try {
+        const cached = await AsyncStorage.getItem('daily_ayah');
+        if (cached) {
+          setDailyAyahData(JSON.parse(cached));
+        } else {
+          setDailyAyahData(FALLBACK_AYAH);
+        }
+      } catch (_) {
+        setDailyAyahData(FALLBACK_AYAH);
+      }
+    } finally {
+      setIsAyahLoading(false);
+    }
+  };
+
   useFocusEffect(
     useCallback(() => {
       loadSettingsAndTimings();
+      loadDailyAyah();
     }, [])
   );
 
@@ -113,5 +259,9 @@ export const useHome = () => {
     secondsLeft,
     progress,
     formatCountdown,
+    dailyAyahData,
+    isAyahLoading,
+    isDailyAyahEnabled,
+    ramadanCountdown,
   };
 };

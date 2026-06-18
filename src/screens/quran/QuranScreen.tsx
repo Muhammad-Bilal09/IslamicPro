@@ -1,4 +1,3 @@
-import React from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import {
@@ -19,8 +18,8 @@ import { Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { Para } from '@/types/type';
 
-import { useQuran, PARAS, PARA_COLORS } from './UseQuran';
-import { styles, fontFamily } from './QuranStyle';
+import { fontFamily, styles } from './QuranStyle';
+import { PARAS, PARA_COLORS, useQuran } from './UseQuran';
 
 export function QuranScreen() {
   const theme = useTheme();
@@ -41,7 +40,6 @@ export function QuranScreen() {
     loadSurahs,
   } = useQuran();
 
-  // ─── Para card renderer ────────────────────────────────────────────────────
   const renderParaCard = ({ item }: { item: Para }) => {
     const bgColor = PARA_COLORS[(item.number - 1) % PARA_COLORS.length];
     const surahName = getSurahName(item.startSurah);
@@ -53,13 +51,10 @@ export function QuranScreen() {
         android_ripple={{ color: bgColor + '30', borderless: false }}
       >
         <View style={[styles.paraCard, { borderColor: theme.border, backgroundColor: theme.cardBackground }]}>
-          {/* Left number badge */}
           <View style={[styles.paraNumberBadge, { backgroundColor: bgColor }]}>
             <ThemedText style={styles.paraNumberText}>{item.number}</ThemedText>
             <ThemedText style={styles.paraParaLabel}>Para</ThemedText>
           </View>
-
-          {/* Center info */}
           <View style={styles.paraInfo}>
             <ThemedText style={styles.paraName} numberOfLines={1}>{item.name}</ThemedText>
             <ThemedText
@@ -76,7 +71,6 @@ export function QuranScreen() {
             </View>
           </View>
 
-          {/* Right chevron */}
           <View style={[styles.paraChevronWrapper, { backgroundColor: bgColor + '15' }]}>
             <Ionicons name="chevron-forward" size={18} color={bgColor} />
           </View>
@@ -85,7 +79,6 @@ export function QuranScreen() {
     );
   };
 
-  // ─── Surah list header (search + filters + last read) ─────────────────────
   const renderSurahListHeader = () => (
     <View style={styles.headerContainer}>
       {lastReadSurah && (
@@ -137,7 +130,6 @@ export function QuranScreen() {
     </View>
   );
 
-  // ─── Para list header (just filter tabs) ──────────────────────────────────
   const renderParaListHeader = () => (
     <View style={styles.headerContainer}>
       {lastReadSurah && (
@@ -179,7 +171,6 @@ export function QuranScreen() {
           }}
         />
       </View>
-      {/* Para count summary */}
       <View style={styles.paraHeaderSummary}>
         <View style={[styles.paraSummaryBadge, { backgroundColor: theme.primaryLight }]}>
           <Ionicons name="layers-outline" size={16} color={theme.primary} />
@@ -251,7 +242,6 @@ export function QuranScreen() {
     );
   };
 
-  // ─── Para view ─────────────────────────────────────────────────────────────
   if (selectedTab === 'Para') {
     return (
       <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]} edges={['top']}>
@@ -273,7 +263,6 @@ export function QuranScreen() {
     );
   }
 
-  // ─── Surah view ────────────────────────────────────────────────────────────
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]} edges={['top']}>
       <Header title="Quran Majeed" showSearch={true} />

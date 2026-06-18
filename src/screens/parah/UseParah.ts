@@ -62,7 +62,7 @@ export const useParah = () => {
     setErrorMsg(null);
     try {
       const [resArabic, resTrans, resAudio] = await Promise.all([
-        quranApi.get<{ code: number; data: any }>(`/juz/${juzId}/quran-simple-clean`),
+        quranApi.get<{ code: number; data: any }>(`/juz/${juzId}/quran-simple`),
         quranApi.get<{ code: number; data: any }>(`/juz/${juzId}/en.asad`),
         quranApi.get<{ code: number; data: any }>(`/juz/${juzId}/ar.alafasy`),
       ]);

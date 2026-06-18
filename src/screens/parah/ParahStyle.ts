@@ -1,5 +1,5 @@
-import { Platform, StyleSheet } from 'react-native';
 import { Spacing } from '@/constants/theme';
+import { Platform, StyleSheet } from 'react-native';
 
 export const styles = StyleSheet.create({
   safeArea: { flex: 1 },
@@ -42,7 +42,6 @@ export const styles = StyleSheet.create({
     paddingHorizontal: Spacing.four,
     paddingTop: Spacing.two,
   },
-  // ── Surah Separator Headers ──
   surahHeaderContainer: {
     marginVertical: Spacing.three,
   },
@@ -100,7 +99,6 @@ export const styles = StyleSheet.create({
     color: '#094C3A',
     textAlign: 'center',
   },
-  // ── Ayah Card ──
   ayahCard: {
     marginVertical: Spacing.two,
     padding: Spacing.four,
@@ -145,7 +143,6 @@ export const styles = StyleSheet.create({
     fontFamily: Platform.OS === 'ios' ? 'ui-serif' : 'serif',
   },
   translationText: { fontSize: 14, lineHeight: 22 },
-  // ── Player Panel ──
   playerPanel: {
     position: 'absolute',
     bottom: Spacing.four,

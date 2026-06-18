@@ -13,8 +13,8 @@ import {
   View,
 } from 'react-native';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
-import { useLogin } from './UseLogin';
 import { styles } from './LoginStyle';
+import { useLogin } from './UseLogin';
 
 export function LoginScreen({ onGoToRegister, onGoToForgotPassword }: LoginScreenProps) {
   const theme = useTheme();
@@ -24,11 +24,15 @@ export function LoginScreen({ onGoToRegister, onGoToForgotPassword }: LoginScree
     password,
     setPassword,
     isLoading,
+    isGuestLoading,
     apiError,
     fieldErrors,
     setFieldErrors,
     handleLogin,
+    handleContinueAsGuest,
   } = useLogin({ onGoToRegister, onGoToForgotPassword });
+
+  const isAnyLoading = isLoading || isGuestLoading;
 
   return (
     <KeyboardAvoidingView
@@ -43,20 +47,18 @@ export function LoginScreen({ onGoToRegister, onGoToForgotPassword }: LoginScree
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        {/* ── Header ── */}
         <Animated.View entering={FadeInUp.delay(80).duration(500)} style={styles.header}>
           <View style={[styles.logoCircle, { backgroundColor: theme.primaryLight }]}>
             <Ionicons name="moon-outline" size={34} color={theme.primary} />
           </View>
           <ThemedText style={styles.appName} themeColor="text">
-            IslamicPro
+            Ameen
           </ThemedText>
           <ThemedText style={styles.tagline} themeColor="textSecondary">
             Welcome back — sign in to continue
           </ThemedText>
         </Animated.View>
 
-        {/* ── Form Card ── */}
         <Animated.View
           entering={FadeInDown.delay(160).duration(500)}
           style={[styles.card, { backgroundColor: theme.cardBackground, borderColor: theme.border }]}
@@ -65,7 +67,6 @@ export function LoginScreen({ onGoToRegister, onGoToForgotPassword }: LoginScree
             Sign In
           </ThemedText>
 
-          {/* API Error Banner */}
           {apiError && (
             <View style={styles.errorBanner}>
               <Ionicons name="alert-circle" size={16} color="#DC2626" />
@@ -82,7 +83,7 @@ export function LoginScreen({ onGoToRegister, onGoToForgotPassword }: LoginScree
             keyboardType="email-address"
             autoCapitalize="none"
             autoCorrect={false}
-            editable={!isLoading}
+            editable={!isAnyLoading}
             error={fieldErrors.email}
           />
 
@@ -94,26 +95,25 @@ export function LoginScreen({ onGoToRegister, onGoToForgotPassword }: LoginScree
             onChangeText={(t) => { setPassword(t); setFieldErrors((e) => ({ ...e, password: undefined })); }}
             isPassword
             autoCapitalize="none"
-            editable={!isLoading}
+            editable={!isAnyLoading}
             error={fieldErrors.password}
           />
 
           <View style={styles.forgotPasswordRow}>
-            <Pressable onPress={onGoToForgotPassword} disabled={isLoading} hitSlop={8}>
+            <Pressable onPress={onGoToForgotPassword} disabled={isAnyLoading} hitSlop={8}>
               <ThemedText style={[styles.forgotPasswordLink, { color: theme.primary }]}>
                 Forgot Password?
               </ThemedText>
             </Pressable>
           </View>
 
-          {/* Submit */}
           <Pressable
             style={({ pressed }) => [
               styles.submitBtn,
-              { backgroundColor: theme.primary, opacity: pressed || isLoading ? 0.82 : 1 },
+              { backgroundColor: theme.primary, opacity: pressed || isAnyLoading ? 0.82 : 1 },
             ]}
             onPress={handleLogin}
-            disabled={isLoading}
+            disabled={isAnyLoading}
           >
             {isLoading ? (
               <ActivityIndicator color="#fff" />
@@ -127,15 +127,36 @@ export function LoginScreen({ onGoToRegister, onGoToForgotPassword }: LoginScree
             )}
           </Pressable>
 
-          {/* Divider */}
+          <Pressable
+            style={({ pressed }) => [
+              styles.guestBtn,
+              {
+                backgroundColor: theme.primaryLight,
+                opacity: pressed || isAnyLoading ? 0.82 : 1,
+              },
+            ]}
+            onPress={handleContinueAsGuest}
+            disabled={isAnyLoading}
+          >
+            {isGuestLoading ? (
+              <ActivityIndicator color={theme.primary} />
+            ) : (
+              <>
+                <Ionicons name="person-outline" size={20} color={theme.primary} />
+                <ThemedText style={[styles.guestBtnText, { color: theme.primary }]}>
+                  Continue as Guest
+                </ThemedText>
+              </>
+            )}
+          </Pressable>
+
           <View style={[styles.divider, { borderColor: theme.border }]} />
 
-          {/* Switch to Register */}
           <View style={styles.switchRow}>
             <ThemedText style={styles.switchLabel} themeColor="textSecondary">
               Don't have an account?
             </ThemedText>
-            <Pressable onPress={onGoToRegister} disabled={isLoading} hitSlop={8}>
+            <Pressable onPress={onGoToRegister} disabled={isAnyLoading} hitSlop={8}>
               <ThemedText style={[styles.switchLink, { color: theme.primary }]}>
                 Register
               </ThemedText>

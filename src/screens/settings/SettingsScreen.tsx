@@ -23,12 +23,14 @@ function Row({ label, icon, toggle, value, onToggle, onPress, detail, isLast }: 
         <ThemedText style={styles.rowLabel}>{label}</ThemedText>
       </View>
       {toggle ? (
-        <Switch
-          value={value}
-          onValueChange={onToggle}
-          trackColor={{ false: theme.border, true: theme.primaryLight }}
-          thumbColor={value ? theme.primary : theme.tabIconDefault}
-        />
+        <View pointerEvents="none">
+          <Switch
+            value={value}
+            onValueChange={onToggle}
+            trackColor={{ false: theme.border, true: theme.primaryLight }}
+            thumbColor={value ? theme.primary : theme.tabIconDefault}
+          />
+        </View>
       ) : (
         <View style={styles.rowRight}>
           {detail && (
@@ -42,6 +44,9 @@ function Row({ label, icon, toggle, value, onToggle, onPress, detail, isLast }: 
     </View>
   );
 
+  if (toggle && onToggle) {
+    return <Pressable onPress={() => onToggle()}>{content}</Pressable>;
+  }
   if (onPress) {
     return <Pressable onPress={onPress}>{content}</Pressable>;
   }
@@ -56,10 +61,8 @@ export function SettingsScreen() {
     isPlaying,
     prayerReminder,
     dailyAyah,
-    setDailyAyah,
+    handleToggleDailyAyah,
     sound,
-    darkMode,
-    setDarkMode,
     calculationMethod,
     juristicSchool,
     handleToggleReminder,
@@ -72,7 +75,6 @@ export function SettingsScreen() {
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: theme.background }]} edges={['top']}>
-      {/* Header */}
       <View style={[styles.header, { borderBottomColor: theme.border }]}>
         <Pressable onPress={() => router.back()} hitSlop={10}>
           <Ionicons name="arrow-back" size={24} color={theme.text} />
@@ -82,7 +84,6 @@ export function SettingsScreen() {
       </View>
 
       <ScrollView contentContainerStyle={styles.content}>
-        {/* Notifications */}
         <ThemedText style={styles.groupLabel} themeColor="textSecondary">
           Notifications
         </ThemedText>
@@ -99,7 +100,7 @@ export function SettingsScreen() {
             label="Daily Ayah"
             toggle
             value={dailyAyah}
-            onToggle={() => setDailyAyah((v) => !v)}
+            onToggle={handleToggleDailyAyah}
           />
           <Row
             icon="volume-high-outline"
@@ -107,59 +108,18 @@ export function SettingsScreen() {
             toggle
             value={sound}
             onToggle={handleToggleSound}
-          />
-          <Row
-            icon={isPlaying ? "pause-outline" : "play-outline"}
-            label={isPlaying ? "Pause Adhan Preview" : "Preview Adhan Sound"}
-            onPress={() => {
-              try {
-                if (isPlaying) {
-                  player.pause();
-                } else {
-                  player.seekTo(0);
-                  player.play();
-                }
-              } catch (err) {
-                console.error('Failed to preview Adhan:', err);
-              }
-            }}
-          />
-          <Row
-            icon="notifications-outline"
-            label="Send Test Alert (5s)"
-            onPress={handleTestAlert}
             isLast
           />
         </View>
 
-        {/* Appearance */}
-        <ThemedText style={styles.groupLabel} themeColor="textSecondary">
-          Appearance
-        </ThemedText>
-        <View style={[styles.group, { backgroundColor: theme.cardBackground, borderColor: theme.border }]}>
-          <Row
-            icon="moon-outline"
-            label="Dark Mode"
-            toggle
-            value={darkMode}
-            onToggle={() => setDarkMode((v) => !v)}
-          />
-          <Row
-            icon="language-outline"
-            label="Language"
-            detail="English"
-            isLast
-          />
-        </View>
         <ThemedText style={styles.groupLabel} themeColor="textSecondary">
           Prayer
         </ThemedText>
         <View style={[styles.group, { backgroundColor: theme.cardBackground, borderColor: theme.border }]}>
-          <Row icon="compass-outline" label="Qibla Method" detail="GPS" />
           <Row
             icon="calculator-outline"
             label="Calculation Method"
-            detail={METHOD_NAMES[calculationMethod] || 'ISNA (North America)'}
+            detail={METHOD_NAMES[calculationMethod] || 'Karachi'}
             onPress={handleSelectMethod}
           />
           <Row
@@ -171,17 +131,8 @@ export function SettingsScreen() {
           />
         </View>
 
-        {/* General */}
-        <ThemedText style={styles.groupLabel} themeColor="textSecondary">
-          General
-        </ThemedText>
-        <View style={[styles.group, { backgroundColor: theme.cardBackground, borderColor: theme.border }]}>
-          <Row icon="information-circle-outline" label="About IslamicPro" detail="v1.0.0" />
-          <Row icon="help-circle-outline" label="Help & FAQ" />
-          <Row icon="mail-outline" label="Contact Us" isLast />
-        </View>
+        <View style={{ flex: 1 }} />
 
-        {/* Sign Out */}
         <Pressable
           onPress={logout}
           style={[styles.signOutBtn, { backgroundColor: '#FEF2F2', borderColor: '#FECACA' }]}

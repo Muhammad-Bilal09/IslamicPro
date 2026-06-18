@@ -1,5 +1,5 @@
-import React from 'react';
 import { Ionicons } from '@expo/vector-icons';
+import { router } from 'expo-router';
 import {
   ActivityIndicator,
   Pressable,
@@ -14,11 +14,13 @@ import Header from '@/components/header';
 import PrayerTimeRow from '@/components/prayer-time-row';
 import ProgressBar from '@/components/progress-bar';
 import { ThemedText } from '@/components/themed-text';
+import { Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
+import { useScreenData } from '@/hooks/UseScreenData';
 import { convert24hTo12h } from '@/utils/prayerApi';
 
-import { usePrayer, formatCountdown } from './UsePrayer';
 import { styles } from './PrayerStyle';
+import { formatCountdown, usePrayer } from './UsePrayer';
 
 export function PrayerScreen() {
   const theme = useTheme();
@@ -49,16 +51,18 @@ export function PrayerScreen() {
     calibrateGPS,
     saveManualLocation,
     handleToggle,
+    dailyAyahData,
+    isAyahLoading,
+    isDailyAyahEnabled,
   } = usePrayer();
+  const { prayerTimesConfig } = useScreenData();
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]} edges={['top']}>
       <Header title="Prayers" />
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
 
-        {/* ── Hero Countdown Card ── */}
         <Card variant="primary" style={styles.heroCard}>
-          {/* Location Row */}
           <Pressable style={styles.locationRow} onPress={() => setShowConfig(!showConfig)}>
             <View style={styles.locationLeft}>
               <View style={[styles.locationIconWrap, { backgroundColor: 'rgba(255,255,255,0.2)' }]}>
@@ -81,10 +85,8 @@ export function PrayerScreen() {
             </View>
           </Pressable>
 
-          {/* Separator */}
           <View style={[styles.heroDivider, { backgroundColor: 'rgba(255,255,255,0.18)' }]} />
 
-          {/* Body */}
           {isLoading ? (
             <View style={styles.heroLoader}>
               <ActivityIndicator size="large" color="rgba(255,255,255,0.85)" />
@@ -107,7 +109,6 @@ export function PrayerScreen() {
                 {nextPrayerName} at {nextPrayerTime}
               </ThemedText>
 
-              {/* Sub-card: progress */}
               <View style={[styles.progressSubCard, { backgroundColor: theme.primaryDark }]}>
                 <View style={styles.rangeLabels}>
                   <ThemedText style={styles.rangeText} themeColor="textOnPrimary">
@@ -132,7 +133,6 @@ export function PrayerScreen() {
           )}
         </Card>
 
-        {/* ── Location Config Panel ── */}
         {showConfig && (
           <Card variant="outlined" style={styles.configCard}>
             <ThemedText style={[styles.configTitle, { color: theme.text }]}>
@@ -181,7 +181,6 @@ export function PrayerScreen() {
           </Card>
         )}
 
-        {/* ── Error Banner ── */}
         {errorMsg && (
           <View style={[styles.errorBanner, { backgroundColor: '#FEF2F2', borderColor: '#FCA5A5' }]}>
             <Ionicons name="alert-circle" size={18} color="#DC2626" />
@@ -192,7 +191,6 @@ export function PrayerScreen() {
           </View>
         )}
 
-        {/* ── Date Calendar Strip ── */}
         <View style={styles.section}>
           <ThemedText style={styles.sectionLabel} themeColor="textSecondary">SELECT DATE</ThemedText>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.calendarRow}>
@@ -222,17 +220,22 @@ export function PrayerScreen() {
           </ScrollView>
         </View>
 
-        {/* ── Prayer Times ── */}
         <View style={styles.section}>
           <ThemedText style={styles.sectionLabel} themeColor="textSecondary">PRAYER TIMES</ThemedText>
           {prayerTimes ? (
             <View>
-              <PrayerTimeRow name="Fajr" type="MANDATORY" time={convert24hTo12h(prayerTimes.Fajr)} iconName="cloudy-night-outline" isActive={currentPrayerName === 'Fajr'} isEnabled={prayerToggles.Fajr} onToggle={() => handleToggle('Fajr')} />
-              <PrayerTimeRow name="Sunrise" type="NON-OBLIGATORY" time={convert24hTo12h(prayerTimes.Sunrise)} iconName="sunny-outline" isActive={currentPrayerName === 'Sunrise'} isEnabled={prayerToggles.Sunrise} onToggle={() => handleToggle('Sunrise')} />
-              <PrayerTimeRow name="Dhuhr" type="MANDATORY" time={convert24hTo12h(prayerTimes.Dhuhr)} iconName="sunny" isActive={currentPrayerName === 'Dhuhr'} isEnabled={prayerToggles.Dhuhr} onToggle={() => handleToggle('Dhuhr')} />
-              <PrayerTimeRow name="Asr" type="MANDATORY" time={convert24hTo12h(prayerTimes.Asr)} iconName="partly-sunny-outline" isActive={currentPrayerName === 'Asr'} isEnabled={prayerToggles.Asr} onToggle={() => handleToggle('Asr')} />
-              <PrayerTimeRow name="Maghrib" type="MANDATORY" time={convert24hTo12h(prayerTimes.Maghrib)} iconName="moon-outline" isActive={currentPrayerName === 'Maghrib'} isEnabled={prayerToggles.Maghrib} onToggle={() => handleToggle('Maghrib')} />
-              <PrayerTimeRow name="Isha" type="MANDATORY" time={convert24hTo12h(prayerTimes.Isha)} iconName="moon" isActive={currentPrayerName === 'Isha'} isEnabled={prayerToggles.Isha} onToggle={() => handleToggle('Isha')} />
+              {prayerTimesConfig.map((prayer) => (
+                <PrayerTimeRow
+                  key={prayer.name}
+                  name={prayer.name}
+                  type={prayer.type}
+                  time={convert24hTo12h(prayerTimes[prayer.name])}
+                  iconName={prayer.iconName}
+                  isActive={currentPrayerName === prayer.name}
+                  isEnabled={prayerToggles[prayer.name]}
+                  onToggle={() => handleToggle(prayer.name)}
+                />
+              ))}
             </View>
           ) : (
             <View style={styles.emptyState}>
@@ -244,19 +247,46 @@ export function PrayerScreen() {
           )}
         </View>
 
-        {/* ── Ayat Footer ── */}
-        <Card variant="primary" style={styles.ayatCard}>
-          <View style={[styles.ayatIconWrap, { backgroundColor: 'rgba(255,255,255,0.15)' }]}>
-            <Ionicons name="book-outline" size={20} color={theme.textOnPrimary} />
-          </View>
-          <ThemedText style={styles.ayatText} themeColor="textOnPrimary">
-            "Maintain with care the [obligatory] prayers and [in particular] the middle prayer and stand before Allah, devoutly obedient."
-          </ThemedText>
-          <View style={[styles.ayatRefLine, { backgroundColor: 'rgba(255,255,255,0.3)' }]} />
-          <ThemedText style={styles.ayatRef} themeColor="textOnPrimary">
-            SURAH AL-BAQARAH 2:238
-          </ThemedText>
-        </Card>
+        {isDailyAyahEnabled && (
+          <Pressable onPress={() => router.push(`/surah/${dailyAyahData.surahNumber}`)}>
+            <Card variant="primary" style={styles.ayatCard}>
+              <View style={[styles.ayatIconWrap, { backgroundColor: 'rgba(255,255,255,0.15)' }]}>
+                <Ionicons name="book-outline" size={20} color={theme.textOnPrimary} />
+              </View>
+
+              {isAyahLoading ? (
+                <ActivityIndicator size="small" color={theme.textOnPrimary} style={{ marginVertical: Spacing.four }} />
+              ) : (
+                <>
+                  <ThemedText
+                    style={{
+                      fontSize: 24,
+                      fontWeight: 'bold',
+                      textAlign: 'center',
+                      marginVertical: Spacing.two,
+                      lineHeight: 38,
+                      fontFamily: 'serif',
+                      color: theme.textOnPrimary,
+                    }}
+                    themeColor="textOnPrimary"
+                  >
+                    {dailyAyahData.text}
+                  </ThemedText>
+
+                  <ThemedText style={styles.ayatText} themeColor="textOnPrimary">
+                    "{dailyAyahData.translation}"
+                  </ThemedText>
+
+                  <View style={[styles.ayatRefLine, { backgroundColor: 'rgba(255,255,255,0.3)' }]} />
+
+                  <ThemedText style={styles.ayatRef} themeColor="textOnPrimary">
+                    SURAH {dailyAyahData.surahName.toUpperCase()} {dailyAyahData.surahNumber}:{dailyAyahData.numberInSurah}
+                  </ThemedText>
+                </>
+              )}
+            </Card>
+          </Pressable>
+        )}
 
         <View style={styles.bottomSpacer} />
       </ScrollView>

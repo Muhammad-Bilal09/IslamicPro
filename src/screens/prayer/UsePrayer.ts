@@ -10,6 +10,17 @@ import {
   getCurrentAndNextPrayer,
   PrayerTimings,
 } from '@/utils/prayerApi';
+import { quranApi } from '@/utils/api';
+import { DailyAyah } from '../home/UseHome';
+
+const FALLBACK_AYAH: DailyAyah = {
+  text: 'فَإِنَّ مَعَ الْعُسْرِ يُسْرًا',
+  translation: 'For indeed, with hardship [will be] ease.',
+  surahName: 'Ash-Sharh',
+  surahNumber: 94,
+  numberInSurah: 5,
+  date: '',
+};
 
 export function formatCountdown(totalSeconds: number): string {
   const safeSeconds = Math.max(0, Math.floor(totalSeconds));
@@ -40,6 +51,78 @@ export const usePrayer = () => {
   const [secondsLeft, setSecondsLeft] = useState(0);
   const [progress, setProgress] = useState(0);
   const [currentPrayerName, setCurrentPrayerName] = useState('...');
+
+  const [dailyAyahData, setDailyAyahData] = useState<DailyAyah>(FALLBACK_AYAH);
+  const [isAyahLoading, setIsAyahLoading] = useState(true);
+  const [isDailyAyahEnabled, setIsDailyAyahEnabled] = useState(true);
+
+  const loadDailyAyah = async () => {
+    let enabled = true;
+    try {
+      const storedSetting = await AsyncStorage.getItem('daily_ayah_enabled');
+      enabled = storedSetting !== 'false';
+      setIsDailyAyahEnabled(enabled);
+    } catch (_) {}
+
+    if (!enabled) {
+      setIsAyahLoading(false);
+      return;
+    }
+
+    setIsAyahLoading(true);
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    const todayStr = `${year}-${month}-${day}`;
+
+    try {
+      const cached = await AsyncStorage.getItem('daily_ayah');
+      if (cached) {
+        const parsed: DailyAyah = JSON.parse(cached);
+        if (parsed.date === todayStr) {
+          setDailyAyahData(parsed);
+          setIsAyahLoading(false);
+          return;
+        }
+      }
+
+      const randomIdx = Math.floor(Math.random() * 6236) + 1;
+      const res = await quranApi.get(`/ayah/${randomIdx}/editions/quran-simple,en.asad`);
+      const data = res.data;
+
+      if (data.code === 200 && Array.isArray(data.data) && data.data.length >= 2) {
+        const arabic = data.data[0];
+        const translation = data.data[1];
+        const newAyah: DailyAyah = {
+          text: arabic.text,
+          translation: translation.text,
+          surahName: arabic.surah.englishName,
+          surahNumber: arabic.surah.number,
+          numberInSurah: arabic.numberInSurah,
+          date: todayStr,
+        };
+        await AsyncStorage.setItem('daily_ayah', JSON.stringify(newAyah));
+        setDailyAyahData(newAyah);
+      } else {
+        throw new Error('Invalid response from Quran API.');
+      }
+    } catch (err) {
+      console.error('[PrayerScreen] Error loading daily ayah:', err);
+      try {
+        const cached = await AsyncStorage.getItem('daily_ayah');
+        if (cached) {
+          setDailyAyahData(JSON.parse(cached));
+        } else {
+          setDailyAyahData(FALLBACK_AYAH);
+        }
+      } catch (_) {
+        setDailyAyahData(FALLBACK_AYAH);
+      }
+    } finally {
+      setIsAyahLoading(false);
+    }
+  };
 
   const [prayerToggles, setPrayerToggles] = useState<Record<string, boolean>>({
     Fajr: true,
@@ -130,6 +213,7 @@ export const usePrayer = () => {
         }
       };
       loadSettings();
+      loadDailyAyah();
     }, [school])
   );
 
@@ -251,5 +335,8 @@ export const usePrayer = () => {
     calibrateGPS,
     saveManualLocation,
     handleToggle,
+    dailyAyahData,
+    isAyahLoading,
+    isDailyAyahEnabled,
   };
 };

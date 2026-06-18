@@ -1,5 +1,5 @@
-import { StyleSheet } from 'react-native';
 import { Spacing } from '@/constants/theme';
+import { StyleSheet } from 'react-native';
 
 export const styles = StyleSheet.create({
   safe: { flex: 1 },
@@ -12,7 +12,7 @@ export const styles = StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
   headerTitle: { fontSize: 17, fontWeight: '700' },
-  content: { padding: Spacing.four, paddingBottom: 100, gap: Spacing.two },
+  content: { padding: Spacing.four, paddingBottom: Spacing.six, gap: Spacing.two, flexGrow: 1 },
   groupLabel: {
     fontSize: 12,
     fontWeight: '600',
@@ -45,6 +45,7 @@ export const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: Spacing.two,
     marginTop: Spacing.four,
+    marginBottom: 36,
     paddingVertical: 14,
     borderRadius: 16,
     borderWidth: 1,

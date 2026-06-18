@@ -62,7 +62,7 @@ export const useSurah = () => {
     setErrorMsg(null);
     try {
       const response = await quranApi.get<{ code: number; data: any[] }>(
-        `/surah/${surahId}/editions/quran-simple-clean,en.asad,ar.alafasy`
+        `/surah/${surahId}/editions/quran-simple,en.asad,ar.alafasy`
       );
       const json = response.data;
       if (json.code !== 200 || !json.data || json.data.length < 3) {

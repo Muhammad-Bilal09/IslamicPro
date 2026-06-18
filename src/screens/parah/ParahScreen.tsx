@@ -1,4 +1,3 @@
-import React from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import {
   ActivityIndicator,
@@ -14,8 +13,8 @@ import { ThemedText } from '@/components/themed-text';
 import { useTheme } from '@/hooks/use-theme';
 import { UnifiedAyah } from '@/types/type';
 
-import { useParah } from './UseParah';
 import { styles } from './ParahStyle';
+import { useParah } from './UseParah';
 
 export function ParahScreen() {
   const theme = useTheme();
@@ -41,14 +40,12 @@ export function ParahScreen() {
     onScrollToIndexFailed,
   } = useParah();
 
-  // ── Ayah & Surah Separator renderer ────────────────────────────────────────
   const renderAyahItem = ({ item, index }: { item: UnifiedAyah; index: number }) => {
     const isActive = index === currentAyahIndex;
     const isNewSurah = index === 0 || item.surah.number !== ayahs[index - 1].surah.number;
 
     return (
       <View>
-        {/* Dynamic Surah Boundary Header */}
         {isNewSurah && (
           <View style={styles.surahHeaderContainer}>
             <Card
@@ -62,12 +59,10 @@ export function ParahScreen() {
               ]}
             >
               <View style={styles.surahHeaderRow}>
-                {/* Surah Number Badge */}
                 <View style={[styles.surahNumberBadge, { backgroundColor: theme.primary }]}>
                   <ThemedText style={styles.surahNumberText}>{item.surah.number}</ThemedText>
                 </View>
 
-                {/* Surah details */}
                 <View style={styles.surahHeaderTitles}>
                   <ThemedText style={styles.surahHeaderName}>{item.surah.englishName}</ThemedText>
                   <ThemedText style={styles.surahHeaderTranslation} themeColor="textSecondary">
@@ -75,7 +70,6 @@ export function ParahScreen() {
                   </ThemedText>
                 </View>
 
-                {/* Arabic name and revelation type */}
                 <View style={styles.surahHeaderRight}>
                   <ThemedText style={styles.surahHeaderArabic}>{item.surah.name}</ThemedText>
                   <Badge text={item.surah.revelationType} variant="light" />
@@ -83,7 +77,6 @@ export function ParahScreen() {
               </View>
             </Card>
 
-            {/* Bismillah Card (if it is a new Surah, and not Surah 9 (At-Tawbah), and not Surah 1 (where Bismillah is built-in as verse 1)) */}
             {item.surah.number !== 9 && (item.surah.number !== 1 || item.numberInSurah !== 1) && item.numberInSurah === 1 && (
               <Card variant="outlined" style={styles.bismillahCard}>
                 <ThemedText style={styles.bismillahText}>
@@ -94,7 +87,6 @@ export function ParahScreen() {
           </View>
         )}
 
-        {/* Regular Ayah Card */}
         <Card
           variant={isActive ? 'default' : 'outlined'}
           style={[
@@ -149,7 +141,6 @@ export function ParahScreen() {
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]} edges={['top', 'bottom']}>
-      {/* Header */}
       <View style={[styles.header, { borderBottomColor: theme.border }]}>
         <Pressable onPress={() => router.back()} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color={theme.text} />
@@ -164,8 +155,6 @@ export function ParahScreen() {
 
         <View style={styles.backButtonPlaceholder} />
       </View>
-
-      {/* Body */}
       {isLoading ? (
         <View style={styles.loaderContainer}>
           <ActivityIndicator size="large" color={theme.primary} />
@@ -196,7 +185,6 @@ export function ParahScreen() {
             onScrollToIndexFailed={onScrollToIndexFailed}
           />
 
-          {/* Floating Audio Player Panel */}
           {currentAyahIndex !== null && (
             <Card
               style={[
@@ -228,7 +216,6 @@ export function ParahScreen() {
               </View>
 
               <View style={styles.playerControlsRow}>
-                {/* Auto-advance toggle */}
                 <Pressable
                   style={[styles.utilityBtn, { backgroundColor: autoAdvance ? theme.primaryLight : 'transparent' }]}
                   onPress={() => setAutoAdvance(!autoAdvance)}
@@ -240,7 +227,6 @@ export function ParahScreen() {
                   />
                 </Pressable>
 
-                {/* Previous */}
                 <Pressable
                   style={[styles.navBtn, { borderColor: theme.border }]}
                   onPress={handlePrev}
@@ -253,7 +239,6 @@ export function ParahScreen() {
                   />
                 </Pressable>
 
-                {/* Play/Pause main */}
                 <Pressable style={[styles.mainPlayBtn, { backgroundColor: theme.primary }]} onPress={togglePlayPause}>
                   <Ionicons
                     name={isPlaying ? 'pause' : 'play'}
@@ -263,7 +248,6 @@ export function ParahScreen() {
                   />
                 </Pressable>
 
-                {/* Next */}
                 <Pressable
                   style={[styles.navBtn, { borderColor: theme.border }]}
                   onPress={handleNext}
@@ -276,7 +260,6 @@ export function ParahScreen() {
                   />
                 </Pressable>
 
-                {/* Close */}
                 <Pressable style={styles.utilityBtn} onPress={stopAudio}>
                   <Ionicons name="close" size={22} color={theme.textSecondary} />
                 </Pressable>

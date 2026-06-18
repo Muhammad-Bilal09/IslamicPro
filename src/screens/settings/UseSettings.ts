@@ -1,6 +1,6 @@
 import { useAlert } from '@/context/alert-context';
 import { useAuth } from '@/context/auth-context';
-import { checkAndScheduleNotifications, triggerTestNotification, getScheduledNotificationsCount } from '@/utils/notifications';
+import { checkAndScheduleNotifications, getScheduledNotificationsCount, triggerTestNotification } from '@/utils/notifications';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAudioPlayer, useAudioPlayerStatus } from 'expo-audio';
 import { useRouter } from 'expo-router';
@@ -34,7 +34,6 @@ export const useSettings = () => {
   const [prayerReminder, setPrayerReminder] = useState(true);
   const [dailyAyah, setDailyAyah] = useState(true);
   const [sound, setSound] = useState(true);
-  const [darkMode, setDarkMode] = useState(false);
   const [calculationMethod, setCalculationMethod] = useState(2);
   const [juristicSchool, setJuristicSchool] = useState(0);
 
@@ -56,6 +55,10 @@ export const useSettings = () => {
         const storedAdhanSound = await AsyncStorage.getItem('adhan_sound_enabled');
         if (storedAdhanSound !== null) {
           setSound(storedAdhanSound === 'true');
+        }
+        const storedDailyAyah = await AsyncStorage.getItem('daily_ayah_enabled');
+        if (storedDailyAyah !== null) {
+          setDailyAyah(storedDailyAyah === 'true');
         }
         const storedMethod = await AsyncStorage.getItem('prayer_method');
         if (storedMethod !== null) {
@@ -91,6 +94,16 @@ export const useSettings = () => {
       await checkAndScheduleNotifications(null, true);
     } catch (error) {
       console.error('Failed to save adhan sound setting:', error);
+    }
+  };
+
+  const handleToggleDailyAyah = async () => {
+    const newVal = !dailyAyah;
+    setDailyAyah(newVal);
+    try {
+      await AsyncStorage.setItem('daily_ayah_enabled', newVal ? 'true' : 'false');
+    } catch (error) {
+      console.error('Failed to save daily ayah setting:', error);
     }
   };
 
@@ -186,10 +199,8 @@ Active scheduled alerts in system: ${count}`,
     isPlaying,
     prayerReminder,
     dailyAyah,
-    setDailyAyah,
+    handleToggleDailyAyah,
     sound,
-    darkMode,
-    setDarkMode,
     calculationMethod,
     juristicSchool,
     handleToggleReminder,

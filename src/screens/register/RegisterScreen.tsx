@@ -13,8 +13,8 @@ import {
   View,
 } from 'react-native';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
-import { useRegister } from './UseRegister';
 import { styles } from './RegisterStyle';
+import { useRegister } from './UseRegister';
 
 export function RegisterScreen({ onGoToLogin }: RegisterScreenProps) {
   const theme = useTheme();
@@ -47,20 +47,18 @@ export function RegisterScreen({ onGoToLogin }: RegisterScreenProps) {
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        {/* ── Header ── */}
         <Animated.View entering={FadeInUp.delay(80).duration(500)} style={styles.header}>
           <View style={[styles.logoCircle, { backgroundColor: theme.primaryLight }]}>
             <Ionicons name="person-add-outline" size={34} color={theme.primary} />
           </View>
           <ThemedText style={styles.appName} themeColor="text">
-            IslamicPro
+            Ameen
           </ThemedText>
           <ThemedText style={styles.tagline} themeColor="textSecondary">
             Create an account to begin your spiritual journey
           </ThemedText>
         </Animated.View>
 
-        {/* ── Form Card ── */}
         <Animated.View
           entering={FadeInDown.delay(160).duration(500)}
           style={[styles.card, { backgroundColor: theme.cardBackground, borderColor: theme.border }]}
@@ -69,7 +67,6 @@ export function RegisterScreen({ onGoToLogin }: RegisterScreenProps) {
             Create Account
           </ThemedText>
 
-          {/* API Error Banner */}
           {apiError && (
             <View style={styles.errorBanner}>
               <Ionicons name="alert-circle" size={16} color="#DC2626" />
@@ -125,7 +122,6 @@ export function RegisterScreen({ onGoToLogin }: RegisterScreenProps) {
             error={fieldErrors.confirmPassword}
           />
 
-          {/* Submit */}
           <Pressable
             style={({ pressed }) => [
               styles.submitBtn,
@@ -146,10 +142,8 @@ export function RegisterScreen({ onGoToLogin }: RegisterScreenProps) {
             )}
           </Pressable>
 
-          {/* Divider */}
           <View style={[styles.divider, { borderColor: theme.border }]} />
 
-          {/* Switch to Login */}
           <View style={styles.switchRow}>
             <ThemedText style={styles.switchLabel} themeColor="textSecondary">
               Already have an account?

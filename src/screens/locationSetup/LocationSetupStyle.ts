@@ -1,11 +1,10 @@
-import { StyleSheet } from 'react-native';
 import { Spacing } from '@/constants/theme';
+import { StyleSheet } from 'react-native';
 
 export const styles = StyleSheet.create({
   root: { flex: 1 },
   scroll: { flexGrow: 1, padding: Spacing.four, paddingTop: Spacing.six },
 
-  /* Header */
   header: { alignItems: 'center', marginBottom: Spacing.five },
   iconCircle: {
     width: 80,
@@ -23,7 +22,6 @@ export const styles = StyleSheet.create({
   greeting: { fontSize: 22, fontWeight: '800', marginBottom: 6, textAlign: 'center' },
   subtitle: { fontSize: 14, textAlign: 'center', lineHeight: 21, paddingHorizontal: Spacing.two },
 
-  /* Cards */
   card: {
     borderRadius: 20,
     borderWidth: 1,
@@ -38,7 +36,6 @@ export const styles = StyleSheet.create({
   cardTitle: { fontSize: 17, fontWeight: '700', marginBottom: 4 },
   cardDesc: { fontSize: 13, lineHeight: 19, marginBottom: Spacing.three },
 
-  /* Error */
   errorBanner: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -52,7 +49,6 @@ export const styles = StyleSheet.create({
   },
   errorBannerText: { fontSize: 12.5, color: '#DC2626', flex: 1 },
 
-  /* GPS Button */
   gpsBtn: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -68,12 +64,10 @@ export const styles = StyleSheet.create({
   },
   gpsBtnText: { fontSize: 15, fontWeight: '700' },
 
-  /* OR divider */
   orRow: { flexDirection: 'row', alignItems: 'center', gap: 12, marginVertical: Spacing.two },
   orLine: { flex: 1, height: 1 },
   orText: { fontSize: 11, fontWeight: '700', letterSpacing: 1 },
 
-  /* Manual Button */
   manualBtn: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -86,7 +80,6 @@ export const styles = StyleSheet.create({
   },
   manualBtnText: { fontSize: 15, fontWeight: '700' },
 
-  /* Skip note */
   skipNote: {
     flexDirection: 'row',
     alignItems: 'flex-start',

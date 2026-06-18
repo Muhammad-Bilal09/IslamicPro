@@ -1,8 +1,6 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { apiClient } from '@/utils/api';
-
-// ─── Types ────────────────────────────────────────────────────────────────────
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import React, { createContext, useContext, useEffect, useState } from 'react';
 
 export interface UserProfile {
   _id: string;
@@ -29,13 +27,12 @@ interface AuthContextType {
   logout: () => Promise<void>;
   updateLocation: (locationData: UserLocation) => Promise<void>;
   updateProfile: (name: string, gender: string) => Promise<void>;
+  continueAsGuest: () => Promise<void>;
 }
 
-// ─── Context ──────────────────────────────────────────────────────────────────
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// ─── Provider ─────────────────────────────────────────────────────────────────
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<UserProfile | null>(null);
@@ -43,7 +40,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [location, setLocation] = useState<UserLocation | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
-  // ── Restore session from AsyncStorage on mount ──
   useEffect(() => {
     const initializeAuth = async () => {
       try {
@@ -65,7 +61,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           'prayer_lng',
         ]);
 
-        // Restore location
         const city = storedCity[1];
         if (city) {
           setLocation({
@@ -77,7 +72,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           });
         }
 
-        // Restore auth
         const savedToken = storedToken[1];
         const savedUserJson = storedUserJson[1];
 
@@ -85,17 +79,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setToken(savedToken);
           setUser(JSON.parse(savedUserJson));
 
-          // Silently verify token is still valid by hitting the profile endpoint.
-          // The request interceptor in api.ts will inject the token automatically.
-          try {
-            const { data } = await apiClient.get<{ success: boolean; data: UserProfile }>('/auth/profile');
-            if (data.success) {
-              setUser(data.data);
-              await AsyncStorage.setItem('userData', JSON.stringify(data.data));
+          if (savedToken !== 'guest') {
+            try {
+              const { data } = await apiClient.get<{ success: boolean; data: UserProfile }>('/auth/profile');
+              if (data.success) {
+                setUser(data.data);
+                await AsyncStorage.setItem('userData', JSON.stringify(data.data));
+              }
+            } catch {
+              await clearSession();
             }
-          } catch {
-            // Token expired or network offline — clear session
-            await clearSession();
           }
         }
       } catch (err) {
@@ -108,7 +101,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     initializeAuth();
   }, []);
 
-  // ── Helpers ──
 
   const clearSession = async () => {
     setUser(null);
@@ -132,7 +124,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     await AsyncStorage.setItem('userData', JSON.stringify(userProfile));
   };
 
-  // ── Auth Actions ──
 
   const register = async (name: string, email: string, password: string) => {
     await apiClient.post('/auth/register', { name, email, password });
@@ -152,7 +143,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     await clearSession();
   };
 
+  const continueAsGuest = async () => {
+    const guestUser: UserProfile = {
+      _id: 'guest_id',
+      name: 'Guest User',
+      email: 'guest@ameen.app',
+    };
+    setUser(guestUser);
+    setToken('guest');
+    await AsyncStorage.multiSet([
+      ['authToken', 'guest'],
+      ['userData', JSON.stringify(guestUser)],
+    ]);
+  };
+
   const updateProfile = async (name: string, gender: string) => {
+    if (token === 'guest') {
+      const updatedUser = { ...user!, name, gender };
+      setUser(updatedUser);
+      await AsyncStorage.setItem('userData', JSON.stringify(updatedUser));
+      return;
+    }
+
     const { data } = await apiClient.put<{
       success: boolean;
       data: UserProfile;
@@ -182,14 +194,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   return (
     <AuthContext.Provider
-      value={{ user, token, location, isLoading, register, login, logout, updateLocation, updateProfile }}
+      value={{ user, token, location, isLoading, register, login, logout, updateLocation, updateProfile, continueAsGuest }}
     >
       {children}
     </AuthContext.Provider>
   );
 };
-
-// ─── Hook ─────────────────────────────────────────────────────────────────────
 
 export const useAuth = () => {
   const ctx = useContext(AuthContext);

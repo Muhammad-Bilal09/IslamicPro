@@ -1,18 +1,17 @@
-import React from 'react';
+import { FormInput } from '@/components/auth/form-input';
+import { ThemedText } from '@/components/themed-text';
+import { useTheme } from '@/hooks/use-theme';
+import { Ionicons } from '@expo/vector-icons';
 import {
-  View,
-  Pressable,
   ActivityIndicator,
+  Pressable,
   ScrollView,
   StatusBar,
+  View,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
-import { useTheme } from '@/hooks/use-theme';
-import { ThemedText } from '@/components/themed-text';
-import { FormInput } from '@/components/auth/form-input';
-import { useLocationSetup } from './UseLocationSetup';
 import { styles } from './LocationSetupStyle';
+import { useLocationSetup } from './UseLocationSetup';
 
 export function LocationSetupScreen() {
   const theme = useTheme();
@@ -43,7 +42,6 @@ export function LocationSetupScreen() {
         barStyle={theme.background === '#0B0F19' ? 'light-content' : 'dark-content'}
       />
 
-      {/* ── Header ── */}
       <Animated.View entering={FadeInUp.delay(80).duration(500)} style={styles.header}>
         <View style={[styles.iconCircle, { backgroundColor: theme.primaryLight }]}>
           <Ionicons name="location-outline" size={36} color={theme.primary} />
@@ -56,7 +54,6 @@ export function LocationSetupScreen() {
         </ThemedText>
       </Animated.View>
 
-      {/* ── GPS Option Card ── */}
       <Animated.View
         entering={FadeInDown.delay(160).duration(500)}
         style={[styles.card, { backgroundColor: theme.cardBackground, borderColor: theme.border }]}
@@ -96,7 +93,6 @@ export function LocationSetupScreen() {
         </Pressable>
       </Animated.View>
 
-      {/* ── Divider ── */}
       <Animated.View entering={FadeInDown.delay(240).duration(500)} style={styles.orRow}>
         <View style={[styles.orLine, { backgroundColor: theme.border }]} />
         <ThemedText style={styles.orText} themeColor="textSecondary">
@@ -105,7 +101,6 @@ export function LocationSetupScreen() {
         <View style={[styles.orLine, { backgroundColor: theme.border }]} />
       </Animated.View>
 
-      {/* ── Manual Entry Card ── */}
       <Animated.View
         entering={FadeInDown.delay(320).duration(500)}
         style={[styles.card, { backgroundColor: theme.cardBackground, borderColor: theme.border }]}
@@ -163,7 +158,6 @@ export function LocationSetupScreen() {
         </Pressable>
       </Animated.View>
 
-      {/* ── Skip note ── */}
       <Animated.View entering={FadeInDown.delay(400).duration(500)} style={styles.skipNote}>
         <Ionicons name="information-circle-outline" size={14} color={theme.textSecondary} />
         <ThemedText style={styles.skipText} themeColor="textSecondary">

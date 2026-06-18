@@ -1,5 +1,5 @@
-import { Dimensions, StyleSheet } from 'react-native';
 import { Spacing } from '@/constants/theme';
+import { Dimensions, StyleSheet } from 'react-native';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 export const COMPASS_SIZE = Math.min(SCREEN_WIDTH - 80, 280);
@@ -46,7 +46,6 @@ export const styles = StyleSheet.create({
     flex: 1,
   },
 
-  /* Compass */
   compassWrapper: {
     alignItems: 'center',
     marginVertical: Spacing.four,
@@ -78,7 +77,6 @@ export const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  // North Needle (Standard compass pointer pointing to N)
   northNeedle: {
     position: 'absolute',
     width: 12,
@@ -88,19 +86,19 @@ export const styles = StyleSheet.create({
   northNeedleTop: {
     width: 10,
     height: '50%',
-    backgroundColor: '#EF4444', // Bright Red for North
+    backgroundColor: '#EF4444',
     borderTopLeftRadius: 5,
     borderTopRightRadius: 5,
   },
   northNeedleBottom: {
     width: 6,
     height: '50%',
-    backgroundColor: '#CBD5E1', // Light Silver/Gray
+    backgroundColor: '#CBD5E1',
     borderBottomLeftRadius: 3,
     borderBottomRightRadius: 3,
   },
 
-  // Qibla Needle (Dedicated green pointer pointing to Kaaba)
+
   qiblaNeedle: {
     position: 'absolute',
     width: 20,
@@ -110,7 +108,7 @@ export const styles = StyleSheet.create({
   qiblaNeedleTop: {
     width: 3,
     height: '45%',
-    backgroundColor: '#10B981', // Emerald Green
+    backgroundColor: '#10B981',
   },
   kaabaIconContainer: {
     position: 'absolute',
@@ -123,7 +121,7 @@ export const styles = StyleSheet.create({
   qiblaNeedleBottom: {
     width: 3,
     height: '45%',
-    backgroundColor: 'transparent', // Only show the green top pointer and Kaaba icon
+    backgroundColor: 'transparent',
   },
   centerDot: {
     position: 'absolute',
@@ -144,7 +142,6 @@ export const styles = StyleSheet.create({
     fontWeight: '500',
   },
 
-  /* Info Card */
   infoCard: {
     width: '100%',
     padding: Spacing.four,
@@ -182,7 +179,6 @@ export const styles = StyleSheet.create({
     marginHorizontal: Spacing.three,
   },
 
-  /* Buttons */
   buttonRow: {
     flexDirection: 'row',
     gap: Spacing.three,

@@ -1,4 +1,3 @@
-import React from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import {
   ActivityIndicator,
@@ -14,8 +13,8 @@ import { ThemedText } from '@/components/themed-text';
 import { useTheme } from '@/hooks/use-theme';
 import { UnifiedAyah } from '@/types/type';
 
-import { useSurah } from './UseSurah';
 import { styles } from './SurahStyle';
+import { useSurah } from './UseSurah';
 
 export function SurahScreen() {
   const theme = useTheme();
@@ -41,7 +40,6 @@ export function SurahScreen() {
     onScrollToIndexFailed,
   } = useSurah();
 
-  // ── Ayah card renderer ─────────────────────────────────────────────────────
   const renderAyahItem = ({ item, index }: { item: UnifiedAyah; index: number }) => {
     const isActive = index === currentAyahIndex;
     return (
@@ -57,14 +55,12 @@ export function SurahScreen() {
         ]}
       >
         <View style={styles.ayahHeader}>
-          {/* Verse number circle */}
           <View style={[styles.numberContainer, { backgroundColor: isActive ? theme.primary : theme.backgroundElement }]}>
             <ThemedText style={[styles.ayahNumber, { color: isActive ? theme.textOnPrimary : theme.text }]}>
               {item.numberInSurah}
             </ThemedText>
           </View>
 
-          {/* Per-ayah play button */}
           <Pressable
             style={[styles.playButtonCircle, { backgroundColor: isActive && isPlaying ? theme.accent : theme.primary }]}
             onPress={() => playAyah(index)}
@@ -77,10 +73,8 @@ export function SurahScreen() {
           </Pressable>
         </View>
 
-        {/* Arabic text */}
         <ThemedText style={styles.arabicText}>{item.text}</ThemedText>
 
-        {/* Translation */}
         <ThemedText style={styles.translationText} themeColor="textSecondary">
           {item.translation}
         </ThemedText>
@@ -90,7 +84,6 @@ export function SurahScreen() {
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]} edges={['top', 'bottom']}>
-      {/* Header */}
       <View style={[styles.header, { borderBottomColor: theme.border }]}>
         <Pressable onPress={() => router.back()} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color={theme.text} />
@@ -110,7 +103,6 @@ export function SurahScreen() {
         <View style={styles.backButtonPlaceholder} />
       </View>
 
-      {/* Body */}
       {isLoading ? (
         <View style={styles.loaderContainer}>
           <ActivityIndicator size="large" color={theme.primary} />
@@ -150,7 +142,6 @@ export function SurahScreen() {
             }
           />
 
-          {/* ── Floating Audio Player Panel ───────────────────────────────── */}
           {currentAyahIndex !== null && (
             <Card
               style={[
@@ -162,7 +153,6 @@ export function SurahScreen() {
                 },
               ]}
             >
-              {/* Now-playing info */}
               <View style={styles.playerInfoRow}>
                 <View style={styles.playerTextContainer}>
                   <ThemedText style={styles.playerSurahName}>
@@ -182,9 +172,7 @@ export function SurahScreen() {
                 )}
               </View>
 
-              {/* Controls */}
               <View style={styles.playerControlsRow}>
-                {/* Auto-advance toggle */}
                 <Pressable
                   style={[styles.utilityBtn, { backgroundColor: autoAdvance ? theme.primaryLight : 'transparent' }]}
                   onPress={() => setAutoAdvance(!autoAdvance)}
@@ -196,7 +184,6 @@ export function SurahScreen() {
                   />
                 </Pressable>
 
-                {/* Previous */}
                 <Pressable
                   style={[styles.navBtn, { borderColor: theme.border }]}
                   onPress={handlePrev}
@@ -209,7 +196,6 @@ export function SurahScreen() {
                   />
                 </Pressable>
 
-                {/* Play/Pause main */}
                 <Pressable style={[styles.mainPlayBtn, { backgroundColor: theme.primary }]} onPress={togglePlayPause}>
                   <Ionicons
                     name={isPlaying ? 'pause' : 'play'}
@@ -219,7 +205,6 @@ export function SurahScreen() {
                   />
                 </Pressable>
 
-                {/* Next */}
                 <Pressable
                   style={[styles.navBtn, { borderColor: theme.border }]}
                   onPress={handleNext}
@@ -232,7 +217,6 @@ export function SurahScreen() {
                   />
                 </Pressable>
 
-                {/* Close */}
                 <Pressable style={styles.utilityBtn} onPress={stopAudio}>
                   <Ionicons name="close" size={22} color={theme.textSecondary} />
                 </Pressable>
