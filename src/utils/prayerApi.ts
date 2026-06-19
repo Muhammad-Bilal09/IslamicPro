@@ -1,63 +1,7 @@
+import { CalendarDayData, CurrentAndNextPrayer, PrayerData, PrayerTimings } from '@/types/type';
 import { aladhanApi } from '@/utils/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-export interface PrayerTimings {
-  Fajr: string;
-  Sunrise: string;
-  Dhuhr: string;
-  Asr: string;
-  Maghrib: string;
-  Isha: string;
-  [key: string]: string;
-}
-
-export interface CalendarDayData {
-  timings: PrayerTimings;
-  date: {
-    readable: string;
-    timestamp: string;
-    gregorian: {
-      date: string;
-      day: string;
-      month: { number: number; en: string };
-      year: string;
-    };
-    hijri: {
-      day: string;
-      month: { en: string; ar: string };
-      year: string;
-    };
-  };
-}
-
-export interface PrayerData {
-  timings: PrayerTimings;
-  date: {
-    readable: string;
-    hijri: {
-      day: string;
-      month: { en: string; ar: string };
-      year: string;
-      designation: { abbreviated: string };
-    };
-    gregorian: {
-      weekday: { en: string };
-    };
-  };
-  meta: {
-    timezone: string;
-    method: { name: string };
-  };
-}
-
-export interface CurrentAndNextPrayer {
-  current: string;
-  next: string;
-  nextTime: string;
-  secondsLeft: number;
-  totalWaitSeconds: number;
-  progress: number;
-}
 
 
 export function convert24hTo12h(time24: string): string {
@@ -210,16 +154,16 @@ export async function getOrFetchPrayerCalendar(
       }
     }
   } catch (err) {
-    console.warn('[PrayerApi] Failed to read calendar from cache:', err);
+    console.warn('PrayerApi Failed to read calendar from cache:', err);
   }
 
-  console.log(`[PrayerApi] Cache miss for ${cacheKey}. Fetching calendar...`);
+  console.log(`PrayerApi Cache miss for ${cacheKey}. Fetching calendar...`);
   const data = await fetchPrayerCalendar(city, country, useGps, lat, lng, method, school, year, month);
 
   try {
     await AsyncStorage.setItem(cacheKey, JSON.stringify(data));
   } catch (err) {
-    console.warn('[PrayerApi] Failed to write calendar to cache:', err);
+    console.warn('PrayerApi Failed to write calendar to cache:', err);
   }
 
   return data;

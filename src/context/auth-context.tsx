@@ -105,15 +105,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const clearSession = async () => {
     setUser(null);
     setToken(null);
-    setLocation(null);
     await AsyncStorage.multiRemove([
       'authToken',
       'userData',
-      'prayer_city',
-      'prayer_country',
-      'prayer_use_gps',
-      'prayer_lat',
-      'prayer_lng',
     ]);
   };
 

@@ -8,7 +8,7 @@ import { useEffect, useState } from 'react';
 
 export const METHOD_NAMES: Record<number, string> = {
   1: 'Karachi',
-  2: 'North America',
+  2: 'ISNA',
   3: 'MWL',
   4: 'Makkah',
   5: 'Egypt',
@@ -143,7 +143,7 @@ Active scheduled alerts in system: ${count}`,
       'Choose calculation authority:',
       [
         { text: 'Karachi ', onPress: () => updateMethod(1) },
-        { text: 'North America', onPress: () => updateMethod(2) },
+        { text: 'ISNA', onPress: () => updateMethod(2) },
         {
           text: 'More Options...',
           onPress: () => {

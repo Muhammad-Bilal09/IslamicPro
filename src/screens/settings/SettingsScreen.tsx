@@ -67,7 +67,6 @@ export function SettingsScreen() {
     juristicSchool,
     handleToggleReminder,
     handleToggleSound,
-    handleTestAlert,
     handleSelectMethod,
     handleSelectSchool,
     logout,

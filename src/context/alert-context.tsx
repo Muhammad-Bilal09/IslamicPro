@@ -1,6 +1,6 @@
 import { ThemedText } from '@/components/themed-text';
 import { useTheme } from '@/hooks/use-theme';
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 
 export interface AlertButton {
@@ -21,6 +21,16 @@ interface AlertContextType {
 
 const AlertContext = createContext<AlertContextType | undefined>(undefined);
 
+let globalShowAlert: ((title: string, message?: string, buttons?: AlertButton[]) => void) | null = null;
+
+export const showGlobalAlert = (title: string, message?: string, buttons?: AlertButton[]) => {
+  if (globalShowAlert) {
+    globalShowAlert(title, message, buttons);
+  } else {
+    console.warn('[AlertContext] showGlobalAlert called but AlertProvider is not mounted.');
+  }
+};
+
 export const AlertProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const theme = useTheme();
   const [visible, setVisible] = useState(false);
@@ -30,6 +40,13 @@ export const AlertProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setConfig({ title, message, buttons });
     setVisible(true);
   };
+
+  useEffect(() => {
+    globalShowAlert = showAlert;
+    return () => {
+      globalShowAlert = null;
+    };
+  }, [showAlert]);
 
   const hideAlert = () => {
     setVisible(false);

@@ -1,16 +1,15 @@
-import { useCallback, useEffect, useState } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import * as Location from 'expo-location';
-import { useFocusEffect } from 'expo-router';
+import { DayItem, PrayerTimings } from '@/types/type';
+import { quranApi } from '@/utils/api';
 import { checkAndScheduleNotifications } from '@/utils/notifications';
-import { DayItem } from '@/types/type';
 import {
   fetchPrayerTimesByCity,
   fetchPrayerTimesByCoords,
   getCurrentAndNextPrayer,
-  PrayerTimings,
 } from '@/utils/prayerApi';
-import { quranApi } from '@/utils/api';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as Location from 'expo-location';
+import { useFocusEffect } from 'expo-router';
+import { useCallback, useEffect, useState } from 'react';
 import { DailyAyah } from '../home/UseHome';
 
 const FALLBACK_AYAH: DailyAyah = {
@@ -62,7 +61,7 @@ export const usePrayer = () => {
       const storedSetting = await AsyncStorage.getItem('daily_ayah_enabled');
       enabled = storedSetting !== 'false';
       setIsDailyAyahEnabled(enabled);
-    } catch (_) {}
+    } catch (_) { }
 
     if (!enabled) {
       setIsAyahLoading(false);
@@ -195,6 +194,12 @@ export const usePrayer = () => {
             const storedLat = await AsyncStorage.getItem('prayer_lat');
             const storedLng = await AsyncStorage.getItem('prayer_lng');
             if (storedLat && storedLng) {
+              const currentCity = storedCity || 'Current Location';
+              const currentCountry = storedCountry || '';
+              setCity(currentCity);
+              setCountry(currentCountry);
+              setInputCity(currentCity);
+              setInputCountry(currentCountry);
               await fetchTimingsByCoords(parseFloat(storedLat), parseFloat(storedLng), currentMethod, currentSchool);
               return;
             }
@@ -214,7 +219,7 @@ export const usePrayer = () => {
       };
       loadSettings();
       loadDailyAyah();
-    }, [school])
+    }, [])
   );
 
   useEffect(() => {

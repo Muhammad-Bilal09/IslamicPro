@@ -6,6 +6,8 @@ import Badge from '@/components/badge';
 import Card from '@/components/card';
 import Header from '@/components/header';
 import { ThemedText } from '@/components/themed-text';
+import { useTheme } from '@/hooks/use-theme';
+import { Spacing } from '@/constants/theme';
 
 import { COMPASS_SIZE, styles } from './QiblaStyle';
 import { useQibla } from './UseQibla';
@@ -24,6 +26,7 @@ export function QiblaScreen() {
     forceRecalibrate,
     dialRotation,
     needleRotation,
+    isAligned,
   } = useQibla();
 
   return (
@@ -57,6 +60,24 @@ export function QiblaScreen() {
         )}
 
         <View style={styles.compassWrapper}>
+          {/* Aligned glowing ring background */}
+          <View
+            style={[
+              styles.glowRing,
+              isAligned && {
+                borderColor: '#10B981',
+                borderWidth: 4,
+                opacity: 0.15,
+                backgroundColor: '#10B981' + '10',
+              },
+              {
+                width: COMPASS_SIZE + 24,
+                height: COMPASS_SIZE + 24,
+                borderRadius: (COMPASS_SIZE + 24) / 2,
+              }
+            ]}
+          />
+
           <View
             style={[
               styles.outerDial,
@@ -64,49 +85,104 @@ export function QiblaScreen() {
                 width: COMPASS_SIZE,
                 height: COMPASS_SIZE,
                 borderRadius: COMPASS_SIZE / 2,
-                borderColor: theme.border,
+                borderColor: isAligned ? '#F59E0B' : theme.border,
                 backgroundColor: theme.cardBackground,
                 transform: [{ rotate: dialRotation }],
+                borderWidth: isAligned ? 3 : 2,
               },
             ]}
           >
-            <ThemedText style={[styles.dirLabel, styles.north, { color: theme.primary }]}>N</ThemedText>
-            <ThemedText style={[styles.dirLabel, styles.east]}>E</ThemedText>
-            <ThemedText style={[styles.dirLabel, styles.south]}>S</ThemedText>
-            <ThemedText style={[styles.dirLabel, styles.west]}>W</ThemedText>
+            {/* Draw Compass Ticks */}
+            {Array.from({ length: 12 }).map((_, i) => (
+              <View
+                key={i}
+                style={[
+                  styles.tickMark,
+                  {
+                    transform: [
+                      { rotate: `${i * 30}deg` },
+                      { translateY: -COMPASS_SIZE / 2 + 10 }
+                    ],
+                    backgroundColor: i === 0 
+                      ? '#EF4444' // North is highlighted red
+                      : i % 3 === 0 
+                        ? theme.primary 
+                        : theme.border,
+                    height: i % 3 === 0 ? 10 : 6,
+                    width: i % 3 === 0 ? 2.5 : 1.5,
+                  }
+                ]}
+              />
+            ))}
+
+            <ThemedText style={[styles.dirLabel, styles.north, { color: '#EF4444' }]}>N</ThemedText>
+            <ThemedText style={[styles.dirLabel, styles.east, { color: theme.textSecondary }]}>E</ThemedText>
+            <ThemedText style={[styles.dirLabel, styles.south, { color: theme.textSecondary }]}>S</ThemedText>
+            <ThemedText style={[styles.dirLabel, styles.west, { color: theme.textSecondary }]}>W</ThemedText>
 
             <View
               style={[
                 styles.innerDial,
                 {
-                  width: COMPASS_SIZE * 0.72,
-                  height: COMPASS_SIZE * 0.72,
-                  borderRadius: (COMPASS_SIZE * 0.72) / 2,
-                  borderColor: theme.border,
+                  width: COMPASS_SIZE * 0.74,
+                  height: COMPASS_SIZE * 0.74,
+                  borderRadius: (COMPASS_SIZE * 0.74) / 2,
+                  borderColor: isAligned ? '#10B981' : theme.border,
+                  borderWidth: isAligned ? 2 : 1.5,
                 },
               ]}
             >
+              {/* North Needle */}
               <View style={[styles.northNeedle, { transform: [{ rotate: '0deg' }] }]}>
                 <View style={styles.northNeedleTop} />
                 <View style={styles.northNeedleBottom} />
               </View>
 
+              {/* Kaaba Needle */}
               <View style={[styles.qiblaNeedle, { transform: [{ rotate: needleRotation }] }]}>
-                <View style={styles.kaabaIconContainer}>
-                  <ThemedText style={{ fontSize: 20 }}>🕋</ThemedText>
+                <View style={[
+                  styles.kaabaIconContainer, 
+                  isAligned && {
+                    transform: [{ scale: 1.2 }],
+                    backgroundColor: '#FEF3C7',
+                    borderColor: '#F59E0B',
+                    borderWidth: 1.5,
+                  }
+                ]}>
+                  <ThemedText style={{ fontSize: isAligned ? 20 : 16 }}>🕋</ThemedText>
                 </View>
-                <View style={styles.qiblaNeedleTop} />
+                <View style={[
+                  styles.qiblaNeedleTop, 
+                  { backgroundColor: isAligned ? '#F59E0B' : '#10B981' }
+                ]} />
                 <View style={styles.qiblaNeedleBottom} />
               </View>
-              <View style={[styles.centerDot, { backgroundColor: '#854D0E', borderColor: theme.cardBackground }]} />
+              <View style={[
+                styles.centerDot, 
+                { 
+                  backgroundColor: isAligned ? '#F59E0B' : theme.primary, 
+                  borderColor: theme.cardBackground 
+                }
+              ]} />
             </View>
           </View>
 
-          <Badge
-            text={`${qiblaBearing}° ${getCardinalDirection(qiblaBearing)}`}
-            variant="darkGreen"
-            style={styles.headingBadge}
-          />
+          {/* Dynamic Status / Compass details */}
+          <View style={styles.badgeRow}>
+            {isAligned ? (
+              <Badge
+                text="Qibla Aligned 🕌"
+                variant="success"
+                style={styles.headingBadge}
+              />
+            ) : (
+              <Badge
+                text={`${qiblaBearing}° ${getCardinalDirection(qiblaBearing)}`}
+                variant="darkGreen"
+                style={styles.headingBadge}
+              />
+            )}
+          </View>
 
           {hasMagnetometer && (
             <ThemedText style={styles.deviceHeadingLabel} themeColor="textSecondary">
@@ -170,7 +246,5 @@ export function QiblaScreen() {
     </SafeAreaView>
   );
 }
-
-import { useTheme } from '@/hooks/use-theme';
 
 export default QiblaScreen;

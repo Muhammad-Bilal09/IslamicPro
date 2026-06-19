@@ -1,6 +1,8 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Location from 'expo-location';
 import { useEffect, useState } from 'react';
+import { Platform } from 'react-native';
+import { Magnetometer } from 'expo-sensors';
 
 export const useQibla = () => {
   const [city, setCity] = useState('London, UK');
@@ -164,23 +166,51 @@ export const useQibla = () => {
     calibrateLocation();
 
     let headingSubscription: any = null;
+    let magnetometerSubscription: any = null;
 
     const startWatchingHeading = async () => {
-      try {
-        const { status } = await Location.getForegroundPermissionsAsync();
-        if (status !== 'granted') {
-          console.warn('[QiblaScreen] Location permission not granted. Cannot watch heading.');
-          return;
-        }
+      if (Platform.OS === 'ios') {
+        try {
+          const { status } = await Location.requestForegroundPermissionsAsync();
+          if (status !== 'granted') {
+            console.warn('[QiblaScreen] Location permission not granted. Cannot watch heading.');
+            return;
+          }
 
-        headingSubscription = await Location.watchHeadingAsync((data) => {
-          const headingVal = data.trueHeading >= 0 ? data.trueHeading : data.magHeading;
-          setHeading(Math.round(headingVal));
-          setHasMagnetometer(true);
-        });
-      } catch (err) {
-        console.warn('[QiblaScreen] Failed to start heading watch:', err);
-        setHasMagnetometer(false);
+          headingSubscription = await Location.watchHeadingAsync((data) => {
+            const headingVal = data.trueHeading >= 0 ? data.trueHeading : data.magHeading;
+            setHeading(Math.round(headingVal));
+            setHasMagnetometer(true);
+          });
+        } catch (err) {
+          console.warn('[QiblaScreen] Failed to start heading watch on iOS:', err);
+          setHasMagnetometer(false);
+        }
+      } else {
+        // Android fallback: Use Magnetometer sensor from expo-sensors
+        try {
+          const isAvailable = await Magnetometer.isAvailableAsync();
+          if (!isAvailable) {
+            console.warn('[QiblaScreen] Magnetometer sensor not available on this Android device.');
+            setHasMagnetometer(false);
+            return;
+          }
+
+          Magnetometer.setUpdateInterval(100);
+          magnetometerSubscription = Magnetometer.addListener((data) => {
+            let { x, y } = data;
+            
+            // Calculate heading in degrees relative to magnetic North
+            let angle = Math.atan2(-x, y) * (180 / Math.PI);
+            angle = (angle + 360) % 360;
+            
+            setHeading(Math.round(angle));
+            setHasMagnetometer(true);
+          });
+        } catch (err) {
+          console.warn('[QiblaScreen] Failed to start Magnetometer on Android:', err);
+          setHasMagnetometer(false);
+        }
       }
     };
 
@@ -190,11 +220,15 @@ export const useQibla = () => {
       if (headingSubscription) {
         headingSubscription.remove();
       }
+      if (magnetometerSubscription) {
+        magnetometerSubscription.remove();
+      }
     };
   }, []);
 
   const dialRotation = hasMagnetometer ? `${360 - heading}deg` : '0deg';
   const needleRotation = `${qiblaBearing}deg`;
+  const isAligned = hasMagnetometer && (Math.abs(heading - qiblaBearing) <= 4 || Math.abs(heading - qiblaBearing) >= 356);
 
   return {
     city,
@@ -208,5 +242,6 @@ export const useQibla = () => {
     forceRecalibrate,
     dialRotation,
     needleRotation,
+    isAligned,
   };
 };

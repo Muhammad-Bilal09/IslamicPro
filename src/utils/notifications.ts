@@ -1,6 +1,10 @@
+import { CalendarDayData } from '@/types/type';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Alert, Linking, Platform } from 'react-native';
-import { CalendarDayData, getOrFetchPrayerCalendar } from './prayerApi';
+import { Linking, Platform } from 'react-native';
+import { showGlobalAlert } from '../context/alert-context';
+import { getOrFetchPrayerCalendar } from './prayerApi';
+
+const EXACT_ALARM_ERROR_PATTERNS = ['exact alarm', 'SecurityException', 'permission', 'not allowed'];
 
 let Notifications: any = null;
 try {
@@ -41,6 +45,9 @@ export async function configureNotificationChannel(): Promise<void> {
       try {
         await Notifications.deleteNotificationChannelAsync('prayer-alerts-default');
         await Notifications.deleteNotificationChannelAsync('prayer-alerts-azan-v3');
+        await Notifications.deleteNotificationChannelAsync('prayer-alerts-azan-v4');
+        await Notifications.deleteNotificationChannelAsync('prayer-alerts-azan-v5');
+        await Notifications.deleteNotificationChannelAsync('prayer-alerts-azan-v6');
       } catch (err) {
         console.warn('[NotificationService] Failed to delete old channels:', err);
       }
@@ -58,7 +65,7 @@ export async function configureNotificationChannel(): Promise<void> {
           contentType: Notifications.AndroidAudioContentType.SONIFICATION,
         },
       });
-      await Notifications.setNotificationChannelAsync('prayer-alerts-azan-v4', {
+      await Notifications.setNotificationChannelAsync('prayer-alerts-azan-v7', {
         name: 'Prayer Alerts (Adhan Sound)',
         importance: Notifications.AndroidImportance.MAX,
         vibrationPattern: [0, 250, 250, 250],
@@ -68,7 +75,7 @@ export async function configureNotificationChannel(): Promise<void> {
         showBadge: true,
         lockscreenVisibility: Notifications.AndroidNotificationVisibility.PUBLIC,
         audioAttributes: {
-          usage: Notifications.AndroidAudioUsage.ALARM,
+          usage: Notifications.AndroidAudioUsage.NOTIFICATION,
           contentType: Notifications.AndroidAudioContentType.SONIFICATION,
         },
       });
@@ -137,7 +144,6 @@ export async function schedulePrayerNotifications(
     const globalRemindersVal = await AsyncStorage.getItem('prayer_reminders_enabled');
     const globalRemindersEnabled = globalRemindersVal !== 'false';
     if (!globalRemindersEnabled) {
-      await cancelAllScheduledNotifications();
       console.log('[NotificationService] Global prayer reminders disabled. Cancelled all alerts.');
       return;
     }
@@ -157,13 +163,12 @@ export async function schedulePrayerNotifications(
       };
     }
 
+    // Check if Adhan sound is enabled (defaults to true)
     const storedAdhanSound = await AsyncStorage.getItem('adhan_sound_enabled');
-    const isAdhanEnabled = storedAdhanSound !== 'false';
-    const channelId = isAdhanEnabled ? 'prayer-alerts-azan-v4' : 'prayer-alerts-default-v2';
+    const isAdhanSoundEnabled = storedAdhanSound !== 'false';
 
-    const soundFile = isAdhanEnabled
-      ? (Platform.OS === 'ios' ? 'azan.wav' : 'azan')
-      : true;
+    const channelId = isAdhanSoundEnabled ? 'prayer-alerts-azan-v7' : 'prayer-alerts-default-v2';
+    const soundFile = isAdhanSoundEnabled ? (Platform.OS === 'ios' ? 'azan.wav' : 'azan') : undefined;
 
     const storedCity = await AsyncStorage.getItem('prayer_city');
     const storedCountry = await AsyncStorage.getItem('prayer_country');
@@ -181,8 +186,19 @@ export async function schedulePrayerNotifications(
     const methodId = storedMethod ? parseInt(storedMethod, 10) : 2;
     const schoolId = storedSchool ? parseInt(storedSchool, 10) : 0;
 
+    const enabledPrayersCount = Object.values(activeToggles || {}).filter(Boolean).length;
+    let daysToScheduleCount = 10;
+
+    if (Platform.OS === 'ios') {
+      const totalToSchedule = enabledPrayersCount * daysToScheduleCount;
+      if (totalToSchedule > 60) {
+        console.warn(`[NotificationService] Total notifications (${totalToSchedule}) would exceed safe iOS limit of 60. Trimming days to schedule.`);
+        daysToScheduleCount = Math.floor(60 / Math.max(1, enabledPrayersCount));
+      }
+    }
+
     const datesToSchedule: Date[] = [];
-    for (let i = 0; i < 10; i++) {
+    for (let i = 0; i < daysToScheduleCount; i++) {
       const d = new Date();
       d.setDate(d.getDate() + i);
       datesToSchedule.push(d);
@@ -250,11 +266,11 @@ export async function schedulePrayerNotifications(
                 body: `It's time for ${prayerName} prayer.`,
                 sound: soundFile,
                 data: { prayerName },
-                ...(Platform.OS === 'android' ? { channelId } : {}),
               },
               trigger: {
                 type: Notifications.SchedulableTriggerInputTypes.DATE,
                 date: triggerDate,
+                channelId,
               },
             });
             scheduleCount++;
@@ -263,10 +279,7 @@ export async function schedulePrayerNotifications(
             const errMsg = error?.message || '';
             if (
               Platform.OS === 'android' &&
-              (errMsg.includes('exact alarm') ||
-                errMsg.includes('SecurityException') ||
-                errMsg.includes('permission') ||
-                errMsg.includes('not allowed'))
+              EXACT_ALARM_ERROR_PATTERNS.some((pattern) => errMsg.includes(pattern))
             ) {
               exactAlarmPermissionDenied = true;
               break;
@@ -276,10 +289,10 @@ export async function schedulePrayerNotifications(
       }
     }
 
-    console.log(`[NotificationService] Successfully scheduled ${scheduleCount} notifications for the next 10 days.`);
+    console.log(`NotificationService Successfully scheduled ${scheduleCount} notifications for the next 10 days.`);
 
     if (exactAlarmPermissionDenied) {
-      Alert.alert(
+      showGlobalAlert(
         'Alarms & Reminders Permission',
         'To play the Adhan exactly at prayer times, Ameen needs the "Alarms & reminders" permission. Please enable it in Settings.',
         [
@@ -362,24 +375,24 @@ export async function triggerTestNotification(): Promise<string | null> {
     await configureNotificationChannel();
 
     const storedAdhanSound = await AsyncStorage.getItem('adhan_sound_enabled');
-    const isAdhanEnabled = storedAdhanSound !== 'false';
-    const channelId = isAdhanEnabled ? 'prayer-alerts-azan-v4' : 'prayer-alerts-default-v2';
+    const isAdhanSoundEnabled = storedAdhanSound !== 'false';
 
-    const soundFile = isAdhanEnabled
-      ? (Platform.OS === 'ios' ? 'azan.wav' : 'azan')
-      : true;
+    const channelId = isAdhanSoundEnabled ? 'prayer-alerts-azan-v7' : 'prayer-alerts-default-v2';
+    const soundFile = isAdhanSoundEnabled ? (Platform.OS === 'ios' ? 'azan.wav' : 'azan') : undefined;
 
     const identifier = await Notifications.scheduleNotificationAsync({
       content: {
-        title: 'Test Adhan Alert 🕌',
-        body: 'This is a test prayer notification from Ameen.',
+        title: isAdhanSoundEnabled ? 'Test Adhan Alert 🕌' : 'Test Prayer Alert 🔔',
+        body: isAdhanSoundEnabled
+          ? 'This is a test prayer notification with Adhan sound.'
+          : 'This is a test prayer notification with default sound.',
         sound: soundFile,
         data: { prayerName: 'Test' },
-        ...(Platform.OS === 'android' ? { channelId } : {}),
       },
       trigger: {
         type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
         seconds: 5,
+        channelId,
       },
     });
 

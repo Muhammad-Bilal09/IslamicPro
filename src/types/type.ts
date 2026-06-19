@@ -115,3 +115,63 @@ export type CountdownItem = {
     value: number;
     label: 'DAYS' | 'HRS' | 'MINS' | 'SECS';
 };
+
+
+
+export type PrayerTimings = {
+    Fajr: string;
+    Sunrise: string;
+    Dhuhr: string;
+    Asr: string;
+    Maghrib: string;
+    Isha: string;
+    [key: string]: string;
+}
+
+export type CalendarDayData = {
+    timings: PrayerTimings;
+    date: {
+        readable: string;
+        timestamp: string;
+        gregorian: {
+            date: string;
+            day: string;
+            month: { number: number; en: string };
+            year: string;
+        };
+        hijri: {
+            day: string;
+            month: { en: string; ar: string };
+            year: string;
+        };
+    };
+}
+
+export type PrayerData = {
+    timings: PrayerTimings;
+    date: {
+        readable: string;
+        hijri: {
+            day: string;
+            month: { en: string; ar: string };
+            year: string;
+            designation: { abbreviated: string };
+        };
+        gregorian: {
+            weekday: { en: string };
+        };
+    };
+    meta: {
+        timezone: string;
+        method: { name: string };
+    };
+}
+
+export type CurrentAndNextPrayer = {
+    current: string;
+    next: string;
+    nextTime: string;
+    secondsLeft: number;
+    totalWaitSeconds: number;
+    progress: number;
+}

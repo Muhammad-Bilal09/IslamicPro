@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "Ameen",
-    "slug": "IslamicPro",
+    "slug": "Ameen",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -67,7 +67,7 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "38113d55-1fde-4528-bd3a-6ca850e48749"
+        "projectId": "6884abc2-c853-4f84-b0d3-b5a5aa2909b1"
       }
     }
   }
