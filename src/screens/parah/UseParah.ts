@@ -1,59 +1,39 @@
 import { useEffect, useRef, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { setAudioModeAsync, useAudioPlayer, useAudioPlayerStatus } from 'expo-audio';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { FlatList } from 'react-native';
 import { UnifiedAyah } from '@/types/type';
 import { quranApi } from '@/utils/api';
+import { useAudio } from '@/context/audio-context';
+import { useTranslation } from '@/context/translation-context';
 
 export const useParah = () => {
   const router = useRouter();
   const { id } = useLocalSearchParams();
   const juzId = parseInt(Array.isArray(id) ? id[0] : id, 10);
+  const { translationLang } = useTranslation();
 
   const [ayahs, setAyahs] = useState<UnifiedAyah[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [juzTitle, setJuzTitle] = useState<string>(`Para ${juzId}`);
 
-  const [currentAyahIndex, setCurrentAyahIndex] = useState<number | null>(null);
-  const [isLoadingAudio, setIsLoadingAudio] = useState(false);
-  const [autoAdvance, setAutoAdvance] = useState(true);
+  const {
+    isPlaying,
+    isLoadingAudio,
+    currentAyahIndex: globalAyahIndex,
+    playingContext,
+    autoAdvance,
+    setAutoAdvance,
+    playAyah: playGlobalAyah,
+    togglePlayPause,
+    stopAudio,
+    handleNext,
+    handlePrev,
+  } = useAudio();
 
-  const currentAyahIndexRef = useRef<number | null>(null);
-  const ayahsRef = useRef<UnifiedAyah[]>([]);
-  const autoAdvanceRef = useRef(true);
-
-  useEffect(() => { ayahsRef.current = ayahs; }, [ayahs]);
-  useEffect(() => { autoAdvanceRef.current = autoAdvance; }, [autoAdvance]);
-  useEffect(() => { currentAyahIndexRef.current = currentAyahIndex; }, [currentAyahIndex]);
-
-  const player = useAudioPlayer(null);
-  const status = useAudioPlayerStatus(player);
-  const isPlaying = status.playing;
-
-  useEffect(() => {
-    setAudioModeAsync({
-      playsInSilentMode: true,
-      shouldPlayInBackground: false,
-      interruptionMode: 'doNotMix',
-    }).catch(() => { });
-  }, []);
-
-  useEffect(() => {
-    if (status.didJustFinish && autoAdvanceRef.current) {
-      const currentIdx = currentAyahIndexRef.current;
-      if (currentIdx !== null) {
-        const nextIdx = currentIdx + 1;
-        if (nextIdx < ayahsRef.current.length) {
-          playAyah(nextIdx);
-        } else {
-          setCurrentAyahIndex(null);
-          currentAyahIndexRef.current = null;
-        }
-      }
-    }
-  }, [status.didJustFinish]);
+  const isCurrentJuzPlaying = playingContext.type === 'juz' && playingContext.id === juzId;
+  const currentAyahIndex = isCurrentJuzPlaying ? globalAyahIndex : null;
 
   const flatListRef = useRef<FlatList<UnifiedAyah> | null>(null);
 
@@ -61,9 +41,10 @@ export const useParah = () => {
     setIsLoading(true);
     setErrorMsg(null);
     try {
+      const translationEdition = translationLang === 'ur' ? 'ur.jalandhry' : 'en.asad';
       const [resArabic, resTrans, resAudio] = await Promise.all([
         quranApi.get<{ code: number; data: any }>(`/juz/${juzId}/quran-simple`),
-        quranApi.get<{ code: number; data: any }>(`/juz/${juzId}/en.asad`),
+        quranApi.get<{ code: number; data: any }>(`/juz/${juzId}/${translationEdition}`),
         quranApi.get<{ code: number; data: any }>(`/juz/${juzId}/ar.alafasy`),
       ]);
 
@@ -128,75 +109,21 @@ export const useParah = () => {
       setErrorMsg('Invalid Para number. Please select a number between 1 and 30.');
       setIsLoading(false);
     }
-  }, [juzId]);
+  }, [juzId, translationLang]);
 
   const playAyah = async (index: number) => {
-    const ayahList = ayahsRef.current;
-    if (index < 0 || index >= ayahList.length) return;
+    await playGlobalAyah(index, ayahs, {
+      type: 'juz',
+      id: juzId,
+      title: juzTitle,
+    });
+  };
 
-    const audioUrl = ayahList[index].audio;
-    if (!audioUrl) return;
-
-    setIsLoadingAudio(true);
-    setCurrentAyahIndex(index);
-    currentAyahIndexRef.current = index;
-
-    try {
-      const currentAyah = ayahList[index];
-      await AsyncStorage.setItem('quran_last_read', JSON.stringify({
-        number: currentAyah.surah.number,
-        name: currentAyah.surah.englishName,
-        ayah: currentAyah.numberInSurah,
-      }));
-
-      player.replace({ uri: audioUrl });
-      setTimeout(() => {
-        try { player.play(); } catch (_) { }
-        setIsLoadingAudio(false);
-      }, 300);
-
-      scrollToAyah(index);
-    } catch (err) {
-      console.error('Juz audio playback failed:', err);
-      setIsLoadingAudio(false);
+  useEffect(() => {
+    if (isCurrentJuzPlaying && currentAyahIndex !== null) {
+      scrollToAyah(currentAyahIndex);
     }
-  };
-
-  const togglePlayPause = () => {
-    if (currentAyahIndex === null) {
-      playAyah(0);
-      return;
-    }
-    try {
-      if (isPlaying) {
-        player.pause();
-      } else {
-        player.play();
-      }
-    } catch (err) {
-      console.error('Play/Pause toggle failed:', err);
-    }
-  };
-
-  const handleNext = () => {
-    const idx = currentAyahIndexRef.current;
-    if (idx === null) return;
-    const nextIdx = idx + 1;
-    if (nextIdx < ayahsRef.current.length) playAyah(nextIdx);
-  };
-
-  const handlePrev = () => {
-    const idx = currentAyahIndexRef.current;
-    if (idx === null) return;
-    const prevIdx = idx - 1;
-    if (prevIdx >= 0) playAyah(prevIdx);
-  };
-
-  const stopAudio = () => {
-    try { player.pause(); } catch (_) { }
-    setCurrentAyahIndex(null);
-    currentAyahIndexRef.current = null;
-  };
+  }, [currentAyahIndex, isCurrentJuzPlaying]);
 
   const scrollToAyah = (index: number) => {
     try {

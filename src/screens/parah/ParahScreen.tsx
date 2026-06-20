@@ -13,11 +13,13 @@ import { ThemedText } from '@/components/themed-text';
 import { useTheme } from '@/hooks/use-theme';
 import { UnifiedAyah } from '@/types/type';
 
+import { useTranslation } from '@/context/translation-context';
 import { styles } from './ParahStyle';
 import { useParah } from './UseParah';
 
 export function ParahScreen() {
   const theme = useTheme();
+  const { translationLang, toggleTranslation } = useTranslation();
   const {
     router,
     juzId,
@@ -153,7 +155,21 @@ export function ParahScreen() {
           </ThemedText>
         </View>
 
-        <View style={styles.backButtonPlaceholder} />
+        <Pressable
+          onPress={toggleTranslation}
+          style={{
+            paddingHorizontal: 12,
+            paddingVertical: 6,
+            borderRadius: 16,
+            backgroundColor: theme.primaryLight,
+            borderWidth: 1,
+            borderColor: theme.primary + '20',
+          }}
+        >
+          <ThemedText style={{ fontSize: 10, fontWeight: '800', color: theme.primary }}>
+            {translationLang === 'ur' ? 'ENGLISH' : 'urdu'}
+          </ThemedText>
+        </Pressable>
       </View>
       {isLoading ? (
         <View style={styles.loaderContainer}>

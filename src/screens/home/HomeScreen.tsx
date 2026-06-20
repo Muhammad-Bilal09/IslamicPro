@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { ActivityIndicator, Pressable, ScrollView, View } from 'react-native';
+import { useState } from 'react';
+import { ActivityIndicator, Image, Pressable, ScrollView, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import Badge from '@/components/badge';
@@ -18,6 +19,14 @@ import { useHome } from './UseHome';
 
 export function HomeScreen() {
   const theme = useTheme();
+  const [cardHeight, setCardHeight] = useState(0);
+  const [cardWidth, setCardWidth] = useState(0);
+
+  const imageHeight = cardHeight ? cardHeight * 2.45 : 0;
+  const imageWidth = imageHeight;
+  const finalWidth = cardWidth && imageWidth < cardWidth ? cardWidth : imageWidth;
+  const finalHeight = finalWidth;
+  const finalTop = cardHeight ? - (finalHeight - cardHeight) / 2 : 0;
   const {
     city,
     isLoading,
@@ -31,6 +40,7 @@ export function HomeScreen() {
     isAyahLoading,
     isDailyAyahEnabled,
     ramadanCountdown,
+    hijriDate,
   } = useHome();
   const { getRamadanCountdownItems, quickActions, journeyItems } = useScreenData();
 
@@ -41,85 +51,127 @@ export function HomeScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
+        <View style={{ paddingHorizontal: Spacing.four, marginTop: Spacing.two, marginBottom: Spacing.half, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+          <ThemedText style={{ fontSize: 13, color: theme.textSecondary, fontWeight: '600' }}>
+            {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}
+          </ThemedText>
+          <ThemedText style={{ fontSize: 13, color: theme.primary, fontWeight: '700' }}>
+            {hijriDate}
+          </ThemedText>
+        </View>
+
         <Card
-          variant="elevated"
+          onLayout={(e) => {
+            const { width, height } = e.nativeEvent.layout;
+            setCardWidth(width);
+            setCardHeight(height);
+          }}
           style={{
-            marginTop: Spacing.two,
+            marginTop: Spacing.one,
             marginBottom: Spacing.one,
             padding: Spacing.four,
-            gap: Spacing.three,
             borderWidth: 1,
-            borderColor: theme.primary + '20',
+            borderColor: '#1E293B',
+            backgroundColor: '#0B0F19',
+            overflow: 'hidden',
+            position: 'relative',
           }}
         >
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.two }}>
+          {cardHeight > 0 && cardWidth > 0 && (
+            <>
+              <Image
+                source={require('../../../assets/images/ramadan_bg.png')}
+                style={{
+                  position: 'absolute',
+                  top: finalTop,
+                  right: 0,
+                  width: finalWidth,
+                  height: finalHeight,
+                }}
+                resizeMode="contain"
+              />
               <View
                 style={{
-                  width: 32,
-                  height: 32,
-                  borderRadius: 16,
-                  backgroundColor: theme.primaryLight,
-                  alignItems: 'center',
-                  justifyContent: 'center',
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  backgroundColor: 'rgba(0, 0, 0, 0.3)',
                 }}
-              >
-                <Ionicons name="moon" size={18} color={theme.primary} />
-              </View>
-              <View>
-                <ThemedText style={{ fontWeight: '800', fontSize: 14 }}>
-                  Ramadan Coming Soon!
-                </ThemedText>
-                <ThemedText style={{ fontSize: 11, color: theme.textSecondary, marginTop: 1 }}>
-                  Expected: Feb 8, 2027
-                </ThemedText>
+              />
+            </>
+          )}
+          <View style={{ gap: Spacing.three }}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.two }}>
+                <View
+                  style={{
+                    width: 32,
+                    height: 32,
+                    borderRadius: 16,
+                    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <Ionicons name="moon" size={18} color="#FBBF24" />
+                </View>
+                <View>
+                  <ThemedText style={{ fontWeight: '800', fontSize: 14, color: '#FFFFFF' }}>
+                    Ramadan Coming Soon!
+                  </ThemedText>
+                  <ThemedText style={{ fontSize: 11, color: '#E2E8F0', marginTop: 1 }}>
+                    Expected: Feb 8, 2027
+                  </ThemedText>
+                </View>
               </View>
             </View>
-          </View>
 
-          <View style={{ flexDirection: 'row', gap: 6, marginTop: Spacing.one }}>
-            {getRamadanCountdownItems(ramadanCountdown).map((item) => (
-              <View
-                key={item.label}
-                style={{
-                  flex: 1,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  backgroundColor: theme.cardBackground,
-                  borderRadius: 12,
-                  paddingVertical: 10,
-                  borderWidth: 1,
-                  borderColor: theme.border,
-                  shadowColor: '#000',
-                  shadowOffset: { width: 0, height: 2 },
-                  shadowOpacity: 0.04,
-                  shadowRadius: 4,
-                  elevation: 1,
-                }}
-              >
-                <ThemedText
+            <View style={{ flexDirection: 'row', gap: 6, marginTop: Spacing.one }}>
+              {getRamadanCountdownItems(ramadanCountdown).map((item) => (
+                <View
+                  key={item.label}
                   style={{
-                    fontSize: 22,
-                    fontWeight: '800',
-                    color: theme.primary,
-                    fontVariant: ['tabular-nums'],
-                    marginBottom: 2,
+                    flex: 1,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    backgroundColor: 'rgba(255, 255, 255, 0.12)',
+                    borderRadius: 12,
+                    paddingVertical: 10,
+                    borderWidth: 1,
+                    borderColor: 'rgba(255, 255, 255, 0.15)',
+                    shadowColor: '#000',
+                    shadowOffset: { width: 0, height: 2 },
+                    shadowOpacity: 0.04,
+                    shadowRadius: 4,
+                    elevation: 1,
                   }}
                 >
-                  {String(item.value).padStart(2, '0')}
-                </ThemedText>
-                <ThemedText
-                  style={{
-                    fontSize: 9,
-                    fontWeight: '700',
-                    color: theme.textSecondary,
-                    letterSpacing: 0.8,
-                  }}
-                >
-                  {item.label}
-                </ThemedText>
-              </View>
-            ))}
+                  <ThemedText
+                    style={{
+                      fontSize: 22,
+                      fontWeight: '800',
+                      color: '#FBBF24',
+                      fontVariant: ['tabular-nums'],
+                      marginBottom: 2,
+                    }}
+                  >
+                    {String(item.value).padStart(2, '0')}
+                  </ThemedText>
+                  <ThemedText
+                    style={{
+                      fontSize: 9,
+                      fontWeight: '700',
+                      color: '#E2E8F0',
+                      letterSpacing: 0.8,
+                    }}
+                  >
+                    {item.label}
+                  </ThemedText>
+                </View>
+              ))}
+            </View>
           </View>
         </Card>
 

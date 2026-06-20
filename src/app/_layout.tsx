@@ -1,18 +1,20 @@
+import { useColorScheme } from '@/hooks/use-color-scheme';
 import { DarkTheme, DefaultTheme, ThemeProvider } from 'expo-router';
-import { useColorScheme } from 'react-native';
-import { useState, useEffect } from 'react';
-import { View, ActivityIndicator, StyleSheet } from 'react-native';
+import { useEffect, useState } from 'react';
+import { ActivityIndicator, StyleSheet, View } from 'react-native';
 
-import { AppBottomTabNavigator } from '@/navigation/bottom-tab';
+import { MiniPlayer } from '@/components/mini-player';
+import { Colors } from '@/constants/theme';
+import { AudioProvider } from '@/context/audio-context';
 import { AuthProvider, useAuth } from '@/context/auth-context';
-import { RegisterScreen } from '@/screens/register/RegisterScreen';
-import { LoginScreen } from '@/screens/login/LoginScreen';
+import { TranslationProvider } from '@/context/translation-context';
+import { AppBottomTabNavigator } from '@/navigation/bottom-tab';
 import { ForgotPasswordScreen } from '@/screens/forgotPassword/ForgotPasswordScreen';
 import { LocationSetupScreen } from '@/screens/locationSetup/LocationSetupScreen';
-import { Colors } from '@/constants/theme';
+import { LoginScreen } from '@/screens/login/LoginScreen';
+import { RegisterScreen } from '@/screens/register/RegisterScreen';
 import { checkAndScheduleNotifications } from '@/utils/notifications';
 
-// Inner component that reads auth context
 function RootNavigator() {
   const { token, location, isLoading } = useAuth();
   const colorScheme = useColorScheme();
@@ -20,7 +22,6 @@ function RootNavigator() {
 
   const [authScreen, setAuthScreen] = useState<'register' | 'login' | 'forgot-password'>('register');
 
-  // Trigger prayer notification checks once location is loaded and token exists
   useEffect(() => {
     if (token && location) {
       checkAndScheduleNotifications(location);
@@ -54,7 +55,12 @@ function RootNavigator() {
     return <LocationSetupScreen />;
   }
 
-  return <AppBottomTabNavigator />;
+  return (
+    <View style={{ flex: 1 }}>
+      <AppBottomTabNavigator />
+      <MiniPlayer />
+    </View>
+  );
 }
 
 import { AlertProvider } from '@/context/alert-context';
@@ -64,11 +70,15 @@ export default function RootLayout() {
 
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <AuthProvider>
-        <AlertProvider>
-          <RootNavigator />
-        </AlertProvider>
-      </AuthProvider>
+      <TranslationProvider>
+        <AuthProvider>
+          <AlertProvider>
+            <AudioProvider>
+              <RootNavigator />
+            </AudioProvider>
+          </AlertProvider>
+        </AuthProvider>
+      </TranslationProvider>
     </ThemeProvider>
   );
 }

@@ -260,3 +260,52 @@ function getTodayDateString(): string {
   const year = d.getFullYear();
   return `${day}-${month}-${year}`;
 }
+
+export function getAdjustedHijriDate(hijri: any, country: string, city: string): string {
+  if (!hijri) return 'Loading Date...';
+
+  let day = parseInt(hijri.day, 10);
+  let monthNum = parseInt(hijri.month.number, 10);
+  let year = parseInt(hijri.year, 10);
+  let monthEn = hijri.month.en;
+
+  const countryLower = (country || '').toLowerCase();
+  const cityLower = (city || '').toLowerCase();
+
+  const needsAdjustment =
+    countryLower.includes('pakistan') ||
+    countryLower.includes('india') ||
+    countryLower.includes('bangladesh') ||
+    cityLower.includes('karachi') ||
+    cityLower.includes('mumbai') ||
+    cityLower.includes('dhaka') ||
+    cityLower === 'karachi';
+
+  if (needsAdjustment) {
+    day -= 1;
+    if (day === 0) {
+      monthNum -= 1;
+      if (monthNum === 0) {
+        monthNum = 12;
+        year -= 1;
+      }
+
+      const monthLengths: Record<number, number> = {
+        1: 30, 2: 29, 3: 30, 4: 29, 5: 30, 6: 29,
+        7: 30, 8: 29, 9: 30, 10: 29, 11: 30, 12: 29
+      };
+      day = monthLengths[monthNum] || 30;
+
+      const hijriMonthNamesEn: Record<number, string> = {
+        1: 'Muharram', 2: 'Safar', 3: "Rabi' al-awwal", 4: "Rabi' ath-thani",
+        5: 'Jumada al-ula', 6: 'Jumada al-akhirah', 7: 'Rajab', 8: "Sha'ban",
+        9: 'Ramadan', 10: 'Shawwal', 11: "Dhu al-Qi'dah", 12: 'Dhu al-Hijjah'
+      };
+      monthEn = hijriMonthNamesEn[monthNum] || monthEn;
+    }
+  }
+
+  const dayStr = day.toString().padStart(2, '0');
+  return `${dayStr} ${monthEn} ${year} AH`;
+}
+

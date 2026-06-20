@@ -61,6 +61,7 @@ export const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginVertical: Spacing.one,
     fontVariant: ['tabular-nums'],
+    lineHeight: 38,
   },
   progressBar: {
     marginVertical: Spacing.two,

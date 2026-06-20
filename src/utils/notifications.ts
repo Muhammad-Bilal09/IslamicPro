@@ -183,8 +183,8 @@ export async function schedulePrayerNotifications(
     const useGps = storedUseGps === 'true';
     const lat = storedLat ? parseFloat(storedLat) : undefined;
     const lng = storedLng ? parseFloat(storedLng) : undefined;
-    const methodId = storedMethod ? parseInt(storedMethod, 10) : 2;
-    const schoolId = storedSchool ? parseInt(storedSchool, 10) : 0;
+    const methodId = storedMethod ? parseInt(storedMethod, 10) : 1;
+    const schoolId = storedSchool ? parseInt(storedSchool, 10) : 1;
 
     const enabledPrayersCount = Object.values(activeToggles || {}).filter(Boolean).length;
     let daysToScheduleCount = 10;

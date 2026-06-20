@@ -60,7 +60,13 @@ export function PrayerTimeRow({
       </View>
 
       <View style={styles.rightSection}>
-        <ThemedText style={styles.time}>{time}</ThemedText>
+        <ThemedText
+          style={styles.time}
+          numberOfLines={1}
+          adjustsFontSizeToFit
+        >
+          {time}
+        </ThemedText>
         <Switch
           value={isEnabled}
           onValueChange={onToggle}
@@ -85,9 +91,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.three,
+    flex: 1,
   },
   textContainer: {
     justifyContent: 'center',
+    flex: 1,
   },
   name: {
     fontSize: 16,

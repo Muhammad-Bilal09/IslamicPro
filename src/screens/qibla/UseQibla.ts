@@ -13,6 +13,7 @@ export const useQibla = () => {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   const [heading, setHeading] = useState(0);
+  const [headingVector, setHeadingVector] = useState({ x: 0, y: -1 });
   const [hasMagnetometer, setHasMagnetometer] = useState(false);
 
   const calculateQiblaDirection = (lat: number, lng: number) => {
@@ -45,6 +46,25 @@ export const useQibla = () => {
     const directions = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
     const index = Math.round(deg / 45) % 8;
     return directions[index];
+  };
+
+  const smoothHeadingUpdate = (headingVal: number) => {
+    const rad = (headingVal * Math.PI) / 180;
+    const newX = Math.cos(rad);
+    const newY = Math.sin(rad);
+
+    setHeadingVector((prev) => {
+      // Apply Low Pass Filter on Cartesian coordinates to smooth out jitter
+      const smoothedX = prev.x * 0.85 + newX * 0.15;
+      const smoothedY = prev.y * 0.85 + newY * 0.15;
+
+      // Calculate angle back from the smoothed coordinates
+      let smoothedAngle = Math.atan2(smoothedY, smoothedX) * (180 / Math.PI);
+      smoothedAngle = (smoothedAngle + 360) % 360;
+
+      setHeading(Math.round(smoothedAngle));
+      return { x: smoothedX, y: smoothedY };
+    });
   };
 
   const calibrateLocation = async () => {
@@ -169,33 +189,26 @@ export const useQibla = () => {
     let magnetometerSubscription: any = null;
 
     const startWatchingHeading = async () => {
-      if (Platform.OS === 'ios') {
-        try {
-          const { status } = await Location.requestForegroundPermissionsAsync();
-          if (status !== 'granted') {
-            console.warn('[QiblaScreen] Location permission not granted. Cannot watch heading.');
-            return;
-          }
-
+      try {
+        const { status } = await Location.requestForegroundPermissionsAsync();
+        if (status === 'granted') {
           headingSubscription = await Location.watchHeadingAsync((data) => {
-            const headingVal = data.trueHeading >= 0 ? data.trueHeading : data.magHeading;
-            setHeading(Math.round(headingVal));
+            const headingVal = (typeof data.trueHeading === 'number' && data.trueHeading >= 0)
+              ? data.trueHeading
+              : data.magHeading;
+            smoothHeadingUpdate(headingVal);
             setHasMagnetometer(true);
           });
-        } catch (err) {
-          console.warn('[QiblaScreen] Failed to start heading watch on iOS:', err);
-          setHasMagnetometer(false);
+          return;
         }
-      } else {
-        // Android fallback: Use Magnetometer sensor from expo-sensors
-        try {
-          const isAvailable = await Magnetometer.isAvailableAsync();
-          if (!isAvailable) {
-            console.warn('[QiblaScreen] Magnetometer sensor not available on this Android device.');
-            setHasMagnetometer(false);
-            return;
-          }
+      } catch (err) {
+        console.warn('[QiblaScreen] watchHeadingAsync failed, falling back to Magnetometer:', err);
+      }
 
+      // Fallback: Magnetometer sensor from expo-sensors
+      try {
+        const isAvailable = await Magnetometer.isAvailableAsync();
+        if (isAvailable) {
           Magnetometer.setUpdateInterval(100);
           magnetometerSubscription = Magnetometer.addListener((data) => {
             let { x, y } = data;
@@ -204,13 +217,15 @@ export const useQibla = () => {
             let angle = Math.atan2(-x, y) * (180 / Math.PI);
             angle = (angle + 360) % 360;
             
-            setHeading(Math.round(angle));
+            smoothHeadingUpdate(angle);
             setHasMagnetometer(true);
           });
-        } catch (err) {
-          console.warn('[QiblaScreen] Failed to start Magnetometer on Android:', err);
+        } else {
           setHasMagnetometer(false);
         }
+      } catch (err) {
+        console.warn('[QiblaScreen] Magnetometer fallback failed:', err);
+        setHasMagnetometer(false);
       }
     };
 
@@ -228,7 +243,27 @@ export const useQibla = () => {
 
   const dialRotation = hasMagnetometer ? `${360 - heading}deg` : '0deg';
   const needleRotation = `${qiblaBearing}deg`;
-  const isAligned = hasMagnetometer && (Math.abs(heading - qiblaBearing) <= 4 || Math.abs(heading - qiblaBearing) >= 356);
+
+  // Calculate relative direction angle (where Qibla is relative to phone's current facing)
+  const relativeAngle = (qiblaBearing - heading + 360) % 360;
+  const isAligned = hasMagnetometer && (relativeAngle <= 6 || relativeAngle >= 354);
+
+  let guidanceText = 'Loading...';
+  let guidanceAction: 'left' | 'right' | 'aligned' = 'aligned';
+
+  if (!hasMagnetometer) {
+    guidanceText = 'Place phone flat & align Top to North';
+    guidanceAction = 'aligned';
+  } else if (isAligned) {
+    guidanceText = 'You are facing the Qibla! 🕌';
+    guidanceAction = 'aligned';
+  } else if (relativeAngle > 6 && relativeAngle <= 180) {
+    guidanceText = `Turn Right ↻ (${Math.round(relativeAngle)}°)`;
+    guidanceAction = 'right';
+  } else {
+    guidanceText = `Turn Left ↺ (${Math.round(360 - relativeAngle)}°)`;
+    guidanceAction = 'left';
+  }
 
   return {
     city,
@@ -243,5 +278,8 @@ export const useQibla = () => {
     dialRotation,
     needleRotation,
     isAligned,
+    guidanceText,
+    guidanceAction,
+    relativeAngle,
   };
 };

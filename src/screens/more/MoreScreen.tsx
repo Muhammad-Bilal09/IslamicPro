@@ -134,7 +134,10 @@ export function MoreScreen() {
                 },
               ]}
             >
-              <ThemedText style={[styles.tasbihNumber, { fontSize: numberFontSize }]} themeColor="textOnPrimary">
+              <ThemedText
+                style={[styles.tasbihNumber, { fontSize: numberFontSize, lineHeight: numberFontSize * 1.15 }]}
+                themeColor="textOnPrimary"
+              >
                 {tasbihCount}
               </ThemedText>
               <ThemedText style={styles.tasbihTapText} themeColor="textOnPrimary">

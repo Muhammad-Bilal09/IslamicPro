@@ -102,7 +102,12 @@ export function PrayerScreen() {
               <ThemedText style={styles.nextPrayerName} themeColor="textOnPrimary">
                 {nextPrayerName}
               </ThemedText>
-              <ThemedText style={styles.countdownTimer} themeColor="textOnPrimary">
+              <ThemedText
+                style={styles.countdownTimer}
+                themeColor="textOnPrimary"
+                numberOfLines={1}
+                adjustsFontSizeToFit
+              >
                 {formatCountdown(secondsLeft)}
               </ThemedText>
               <ThemedText style={styles.nextAt} themeColor="textOnPrimary">

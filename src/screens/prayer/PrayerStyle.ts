@@ -100,6 +100,7 @@ export const styles = StyleSheet.create({
     letterSpacing: 3,
     paddingVertical: 12,
     marginVertical: Spacing.one,
+    lineHeight: 58,
   },
   nextAt: {
     fontSize: 13,

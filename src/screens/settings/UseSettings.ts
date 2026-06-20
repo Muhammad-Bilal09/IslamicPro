@@ -1,6 +1,6 @@
 import { useAlert } from '@/context/alert-context';
 import { useAuth } from '@/context/auth-context';
-import { checkAndScheduleNotifications, getScheduledNotificationsCount, triggerTestNotification } from '@/utils/notifications';
+import { checkAndScheduleNotifications } from '@/utils/notifications';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAudioPlayer, useAudioPlayerStatus } from 'expo-audio';
 import { useRouter } from 'expo-router';
@@ -34,8 +34,8 @@ export const useSettings = () => {
   const [prayerReminder, setPrayerReminder] = useState(true);
   const [dailyAyah, setDailyAyah] = useState(true);
   const [sound, setSound] = useState(true);
-  const [calculationMethod, setCalculationMethod] = useState(2);
-  const [juristicSchool, setJuristicSchool] = useState(0);
+  const [calculationMethod, setCalculationMethod] = useState(1);
+  const [juristicSchool, setJuristicSchool] = useState(1);
 
   useEffect(() => {
     return () => {
@@ -107,25 +107,25 @@ export const useSettings = () => {
     }
   };
 
-  const handleTestAlert = async () => {
-    const id = await triggerTestNotification();
-    if (id) {
-      const count = await getScheduledNotificationsCount();
-      showAlert(
-        'Test Alert Scheduled ✅',
-        `You will receive a test prayer notification in 5 seconds. Please put the app in the background.
+  //   const handleTestAlert = async () => {
+  //     const id = await triggerTestNotification();
+  //     if (id) {
+  //       const count = await getScheduledNotificationsCount();
+  //       showAlert(
+  //         'Test Alert Scheduled ✅',
+  //         `You will receive a test prayer notification in 5 seconds. Please put the app in the background.
 
-Active scheduled alerts in system: ${count}`,
-        [{ text: 'OK' }]
-      );
-    } else {
-      showAlert(
-        'Alert Failed ❌',
-        'Could not schedule notification. Please check that notification permissions are enabled for this app in your device settings.',
-        [{ text: 'OK' }]
-      );
-    }
-  };
+  // Active scheduled alerts in system: ${count}`,
+  //         [{ text: 'OK' }]
+  //       );
+  //     } else {
+  //       showAlert(
+  //         'Alert Failed ❌',
+  //         'Could not schedule notification. Please check that notification permissions are enabled for this app in your device settings.',
+  //         [{ text: 'OK' }]
+  //       );
+  //     }
+  //   };
 
   const updateMethod = async (methodId: number) => {
     setCalculationMethod(methodId);
@@ -205,7 +205,7 @@ Active scheduled alerts in system: ${count}`,
     juristicSchool,
     handleToggleReminder,
     handleToggleSound,
-    handleTestAlert,
+    // handleTestAlert,
     handleSelectMethod,
     handleSelectSchool,
     logout,

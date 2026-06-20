@@ -1,6 +1,6 @@
 import { Stack } from 'expo-router';
 import { Colors } from '@/constants/theme';
-import { useColorScheme } from 'react-native';
+import { useColorScheme } from '@/hooks/use-color-scheme';
 
 export function AppStackNavigator() {
   const colorScheme = useColorScheme();

@@ -5,12 +5,14 @@ import {
   fetchPrayerTimesByCity,
   fetchPrayerTimesByCoords,
   getCurrentAndNextPrayer,
+  getAdjustedHijriDate,
 } from '@/utils/prayerApi';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Location from 'expo-location';
 import { useFocusEffect } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import { DailyAyah } from '../home/UseHome';
+import { useTranslation } from '@/context/translation-context';
 
 const FALLBACK_AYAH: DailyAyah = {
   text: 'فَإِنَّ مَعَ الْعُسْرِ يُسْرًا',
@@ -30,18 +32,19 @@ export function formatCountdown(totalSeconds: number): string {
 }
 
 export const usePrayer = () => {
-  const [city, setCity] = useState('London');
-  const [country, setCountry] = useState('United Kingdom');
-  const [method, setMethod] = useState(2);
-  const [school, setSchool] = useState(0);
+  const { translationLang } = useTranslation();
+  const [city, setCity] = useState('Karachi');
+  const [country, setCountry] = useState('Pakistan');
+  const [method, setMethod] = useState(1);
+  const [school, setSchool] = useState(1);
   const [hijriDate, setHijriDate] = useState('Loading Date...');
   const [prayerTimes, setPrayerTimes] = useState<PrayerTimings | null>(null);
 
   const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  const [inputCity, setInputCity] = useState('London');
-  const [inputCountry, setInputCountry] = useState('United Kingdom');
+  const [inputCity, setInputCity] = useState('Karachi');
+  const [inputCountry, setInputCountry] = useState('Pakistan');
   const [showConfig, setShowConfig] = useState(false);
   const [useGPS, setUseGPS] = useState(false);
 
@@ -79,7 +82,7 @@ export const usePrayer = () => {
       const cached = await AsyncStorage.getItem('daily_ayah');
       if (cached) {
         const parsed: DailyAyah = JSON.parse(cached);
-        if (parsed.date === todayStr) {
+        if (parsed.date === todayStr && parsed.lang === translationLang) {
           setDailyAyahData(parsed);
           setIsAyahLoading(false);
           return;
@@ -87,7 +90,8 @@ export const usePrayer = () => {
       }
 
       const randomIdx = Math.floor(Math.random() * 6236) + 1;
-      const res = await quranApi.get(`/ayah/${randomIdx}/editions/quran-simple,en.asad`);
+      const translationEdition = translationLang === 'ur' ? 'ur.jalandhry' : 'en.asad';
+      const res = await quranApi.get(`/ayah/${randomIdx}/editions/quran-simple,${translationEdition}`);
       const data = res.data;
 
       if (data.code === 200 && Array.isArray(data.data) && data.data.length >= 2) {
@@ -100,6 +104,7 @@ export const usePrayer = () => {
           surahNumber: arabic.surah.number,
           numberInSurah: arabic.numberInSurah,
           date: todayStr,
+          lang: translationLang,
         };
         await AsyncStorage.setItem('daily_ayah', JSON.stringify(newAyah));
         setDailyAyahData(newAyah);
@@ -148,7 +153,7 @@ export const usePrayer = () => {
     try {
       const data = await fetchPrayerTimesByCity(cityName, countryName, methodId, schoolId);
       setPrayerTimes(data.timings);
-      setHijriDate(`${data.date.hijri.day} ${data.date.hijri.month.en} ${data.date.hijri.year} AH`);
+      setHijriDate(getAdjustedHijriDate(data.date.hijri, countryName, cityName));
       await checkAndScheduleNotifications(null, true);
     } catch (err: any) {
       setErrorMsg(err.message || 'Failed to fetch prayer times.');
@@ -163,7 +168,7 @@ export const usePrayer = () => {
     try {
       const data = await fetchPrayerTimesByCoords(lat, lng, methodId, schoolId);
       setPrayerTimes(data.timings);
-      setHijriDate(`${data.date.hijri.day} ${data.date.hijri.month.en} ${data.date.hijri.year} AH`);
+      setHijriDate(getAdjustedHijriDate(data.date.hijri, country, city));
       await checkAndScheduleNotifications(null, true);
     } catch (err: any) {
       setErrorMsg(err.message || 'Failed to fetch prayer times by GPS.');
@@ -184,8 +189,8 @@ export const usePrayer = () => {
           const storedGPS = await AsyncStorage.getItem('prayer_use_gps');
           const storedMethod = await AsyncStorage.getItem('prayer_method');
           const storedSchool = await AsyncStorage.getItem('prayer_school');
-          const currentMethod = storedMethod ? parseInt(storedMethod, 10) : 2;
-          const currentSchool = storedSchool ? parseInt(storedSchool, 10) : 0;
+          const currentMethod = storedMethod ? parseInt(storedMethod, 10) : 1;
+          const currentSchool = storedSchool ? parseInt(storedSchool, 10) : 1;
           setMethod(currentMethod);
           setSchool(currentSchool);
 
@@ -205,8 +210,8 @@ export const usePrayer = () => {
             }
           }
 
-          const currentCity = storedCity || 'London';
-          const currentCountry = storedCountry || 'United Kingdom';
+          const currentCity = storedCity || 'Karachi';
+          const currentCountry = storedCountry || 'Pakistan';
           setCity(currentCity);
           setCountry(currentCountry);
           setInputCity(currentCity);
@@ -214,12 +219,12 @@ export const usePrayer = () => {
           await fetchTimingsByCity(currentCity, currentCountry, currentMethod, currentSchool);
         } catch (err) {
           console.error('[PrayerScreen] Error loading settings:', err);
-          await fetchTimingsByCity('London', 'United Kingdom', 2, 0);
+          await fetchTimingsByCity('Karachi', 'Pakistan', 1, 1);
         }
       };
       loadSettings();
       loadDailyAyah();
-    }, [])
+    }, [translationLang])
   );
 
   useEffect(() => {

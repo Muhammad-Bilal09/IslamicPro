@@ -6,8 +6,10 @@ import {
   fetchPrayerTimesByCoords,
   getCurrentAndNextPrayer,
   PrayerTimings,
+  getAdjustedHijriDate,
 } from '@/utils/prayerApi';
 import { quranApi } from '@/utils/api';
+import { useTranslation } from '@/context/translation-context';
 
 export interface DailyAyah {
   text: string;
@@ -16,6 +18,7 @@ export interface DailyAyah {
   surahNumber: number;
   numberInSurah: number;
   date: string;
+  lang?: string;
 }
 
 const FALLBACK_AYAH: DailyAyah = {
@@ -66,10 +69,12 @@ export function getTimeUntilRamadan(): TimeRemaining {
 }
 
 export const useHome = () => {
-  const [city, setCity] = useState('London');
-  const [country, setCountry] = useState('United Kingdom');
-  const [method, setMethod] = useState(2);
+  const { translationLang } = useTranslation();
+  const [city, setCity] = useState('Karachi');
+  const [country, setCountry] = useState('Pakistan');
+  const [method, setMethod] = useState(1);
   const [prayerTimes, setPrayerTimes] = useState<PrayerTimings | null>(null);
+  const [hijriDate, setHijriDate] = useState('Loading Date...');
   const [isLoading, setIsLoading] = useState(false);
 
   const [currentPrayerName, setCurrentPrayerName] = useState('...');
@@ -108,37 +113,42 @@ export const useHome = () => {
       const storedMethod = await AsyncStorage.getItem('prayer_method');
       const storedSchool = await AsyncStorage.getItem('prayer_school');
 
-      const currentMethod = storedMethod ? parseInt(storedMethod, 10) : 2;
-      const currentSchool = storedSchool ? parseInt(storedSchool, 10) : 0;
+      const currentMethod = storedMethod ? parseInt(storedMethod, 10) : 1;
+      const currentSchool = storedSchool ? parseInt(storedSchool, 10) : 1;
       setMethod(currentMethod);
 
       let data;
+      let activeCity = storedCity || 'Karachi';
+      let activeCountry = storedCountry || 'Pakistan';
+
       if (storedGPS === 'true') {
         const storedLat = await AsyncStorage.getItem('prayer_lat');
         const storedLng = await AsyncStorage.getItem('prayer_lng');
         if (storedLat && storedLng) {
           data = await fetchPrayerTimesByCoords(parseFloat(storedLat), parseFloat(storedLng), currentMethod, currentSchool);
-          setCity(storedCity || 'Current Location');
-          setCountry(storedCountry || '');
+          activeCity = storedCity || 'Current Location';
+          activeCountry = storedCountry || '';
+          setCity(activeCity);
+          setCountry(activeCountry);
         }
       }
 
       if (!data) {
-        const currentCity = storedCity || 'London';
-        const currentCountry = storedCountry || 'United Kingdom';
-        setCity(currentCity);
-        setCountry(currentCountry);
-        data = await fetchPrayerTimesByCity(currentCity, currentCountry, currentMethod, currentSchool);
+        setCity(activeCity);
+        setCountry(activeCountry);
+        data = await fetchPrayerTimesByCity(activeCity, activeCountry, currentMethod, currentSchool);
       }
 
       setPrayerTimes(data.timings);
+      setHijriDate(getAdjustedHijriDate(data.date.hijri, activeCountry, activeCity));
     } catch (err) {
       console.error('[HomeScreen] Error loading timings:', err);
       try {
-        const fallbackData = await fetchPrayerTimesByCity('London', 'United Kingdom', 2, 0);
+        const fallbackData = await fetchPrayerTimesByCity('Karachi', 'Pakistan', 1, 1);
         setPrayerTimes(fallbackData.timings);
-        setCity('London');
-        setCountry('United Kingdom');
+        setHijriDate(getAdjustedHijriDate(fallbackData.date.hijri, 'Pakistan', 'Karachi'));
+        setCity('Karachi');
+        setCountry('Pakistan');
       } catch (fErr) {
         console.error('[HomeScreen] Fallback failed:', fErr);
       }
@@ -171,7 +181,7 @@ export const useHome = () => {
       const cached = await AsyncStorage.getItem('daily_ayah');
       if (cached) {
         const parsed: DailyAyah = JSON.parse(cached);
-        if (parsed.date === todayStr) {
+        if (parsed.date === todayStr && parsed.lang === translationLang) {
           setDailyAyahData(parsed);
           setIsAyahLoading(false);
           return;
@@ -179,7 +189,8 @@ export const useHome = () => {
       }
 
       const randomIdx = Math.floor(Math.random() * 6236) + 1;
-      const res = await quranApi.get(`/ayah/${randomIdx}/editions/quran-simple,en.asad`);
+      const translationEdition = translationLang === 'ur' ? 'ur.jalandhry' : 'en.asad';
+      const res = await quranApi.get(`/ayah/${randomIdx}/editions/quran-simple,${translationEdition}`);
       const data = res.data;
 
       if (data.code === 200 && Array.isArray(data.data) && data.data.length >= 2) {
@@ -192,6 +203,7 @@ export const useHome = () => {
           surahNumber: arabic.surah.number,
           numberInSurah: arabic.numberInSurah,
           date: todayStr,
+          lang: translationLang,
         };
         await AsyncStorage.setItem('daily_ayah', JSON.stringify(newAyah));
         setDailyAyahData(newAyah);
@@ -219,7 +231,7 @@ export const useHome = () => {
     useCallback(() => {
       loadSettingsAndTimings();
       loadDailyAyah();
-    }, [])
+    }, [translationLang])
   );
 
   useEffect(() => {
@@ -263,5 +275,6 @@ export const useHome = () => {
     isAyahLoading,
     isDailyAyahEnabled,
     ramadanCountdown,
+    hijriDate,
   };
 };

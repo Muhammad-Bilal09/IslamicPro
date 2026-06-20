@@ -112,10 +112,12 @@ export const styles = StyleSheet.create({
     elevation: 5,
   },
   tasbihNumber: {
-    padding: 20,
     fontSize: 56,
     fontWeight: '800',
     fontVariant: ['tabular-nums'],
+    textAlign: 'center',
+    includeFontPadding: false,
+    textAlignVertical: 'center',
   },
   tasbihTapText: {
     fontSize: 11,
