@@ -1,16 +1,15 @@
-import React from 'react';
-import { View, StyleSheet } from 'react-native';
-import { ThemedText } from './themed-text';
-import { useTheme } from '@/hooks/use-theme';
 import { Spacing } from '@/constants/theme';
+import { useTheme } from '@/hooks/use-theme';
+import { StyleSheet, View } from 'react-native';
 import Card from './card';
+import { ThemedText } from './themed-text';
 
 export interface JourneyItemProps {
-  progressValue: string | number; // e.g. "65%" or "33"
+  progressValue: string | number;
   title: string;
   subtitle: string;
   type?: 'progress' | 'count' | 'icon';
-  iconName?: string; // Optional if type is icon
+  iconName?: string;
 }
 
 export function JourneyItem({ progressValue, title, subtitle, type = 'progress' }: JourneyItemProps) {

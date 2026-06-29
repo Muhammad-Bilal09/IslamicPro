@@ -1,15 +1,15 @@
-import { useCallback, useEffect, useState } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useFocusEffect } from 'expo-router';
+import { useTranslation } from '@/context/translation-context';
+import { PrayerTimings } from '@/types/type';
+import { quranApi } from '@/utils/api';
 import {
   fetchPrayerTimesByCity,
   fetchPrayerTimesByCoords,
-  getCurrentAndNextPrayer,
-  PrayerTimings,
   getAdjustedHijriDate,
+  getCurrentAndNextPrayer,
 } from '@/utils/prayerApi';
-import { quranApi } from '@/utils/api';
-import { useTranslation } from '@/context/translation-context';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useFocusEffect } from 'expo-router';
+import { useCallback, useEffect, useState } from 'react';
 
 export interface DailyAyah {
   text: string;
@@ -142,7 +142,7 @@ export const useHome = () => {
       setPrayerTimes(data.timings);
       setHijriDate(getAdjustedHijriDate(data.date.hijri, activeCountry, activeCity));
     } catch (err) {
-      console.error('[HomeScreen] Error loading timings:', err);
+      console.error('HomeScreen Error loading timings:', err);
       try {
         const fallbackData = await fetchPrayerTimesByCity('Karachi', 'Pakistan', 1, 1);
         setPrayerTimes(fallbackData.timings);
@@ -150,7 +150,7 @@ export const useHome = () => {
         setCity('Karachi');
         setCountry('Pakistan');
       } catch (fErr) {
-        console.error('[HomeScreen] Fallback failed:', fErr);
+        console.error('HomeScreen Fallback failed:', fErr);
       }
     } finally {
       setIsLoading(false);
@@ -163,7 +163,7 @@ export const useHome = () => {
       const storedSetting = await AsyncStorage.getItem('daily_ayah_enabled');
       enabled = storedSetting !== 'false';
       setIsDailyAyahEnabled(enabled);
-    } catch (_) {}
+    } catch (_) { }
 
     if (!enabled) {
       setIsAyahLoading(false);
@@ -211,7 +211,7 @@ export const useHome = () => {
         throw new Error('Invalid response from Quran API.');
       }
     } catch (err) {
-      console.error('[HomeScreen] Error loading daily ayah:', err);
+      console.error('HomeScreen Error loading daily ayah:', err);
       try {
         const cached = await AsyncStorage.getItem('daily_ayah');
         if (cached) {

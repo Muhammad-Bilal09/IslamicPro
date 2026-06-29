@@ -1,11 +1,10 @@
-import React from 'react';
-import { View, StyleSheet, Pressable, Platform, ActivityIndicator } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { usePathname, useGlobalSearchParams } from 'expo-router';
 import { useAudio } from '@/context/audio-context';
 import { useTheme } from '@/hooks/use-theme';
-import { ThemedText } from './themed-text';
+import { Ionicons } from '@expo/vector-icons';
+import { useGlobalSearchParams, usePathname } from 'expo-router';
+import { ActivityIndicator, Platform, Pressable, StyleSheet, View } from 'react-native';
 import Card from './card';
+import { ThemedText } from './themed-text';
 
 export function MiniPlayer() {
   const theme = useTheme();
@@ -21,12 +20,10 @@ export function MiniPlayer() {
     handleNext,
   } = useAudio();
 
-  // If nothing is playing or paused (index is null), don't show the player
   if (currentAyahIndex === null || !playingContext.type) {
     return null;
   }
 
-  // Check if we are currently on the detail screen for the item being played
   const isCurrentlyOnActiveDetailScreen = () => {
     const currentIdStr = params.id ? (Array.isArray(params.id) ? params.id[0] : params.id) : '';
     const playingIdStr = playingContext.id ? playingContext.id.toString() : '';
@@ -40,12 +37,10 @@ export function MiniPlayer() {
     return false;
   };
 
-  // If we are on the active detail screen, the full player is visible, so hide the mini player
   if (isCurrentlyOnActiveDetailScreen()) {
     return null;
   }
 
-  // Determine bottom positioning based on whether the tab bar is visible or hidden
   const hasTabBar =
     pathname === '/' ||
     pathname === '/prayer' ||

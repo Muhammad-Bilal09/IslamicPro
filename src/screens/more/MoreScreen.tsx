@@ -20,15 +20,12 @@ export function MoreScreen() {
 
   const progress = target ? tasbihCount / target : 0;
 
-  // Responsive sizes based on screen height
   const isSmallScreen = screenHeight < 680;
   const ringSize = isSmallScreen ? 170 : 200;
   const wrapperSize = isSmallScreen ? 190 : 220;
   const ringRadius = ringSize / 2;
   const cardPadding = isSmallScreen ? 16 : 24;
   const counterMargin = isSmallScreen ? 8 : 16;
-
-  // Responsive font size based on digit count to prevent overflow in the ring
   const digitCount = String(tasbihCount).length;
   let numberFontSize = isSmallScreen ? 44 : 56;
   if (digitCount > 3) {

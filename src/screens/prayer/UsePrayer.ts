@@ -1,18 +1,18 @@
+import { useTranslation } from '@/context/translation-context';
 import { DayItem, PrayerTimings } from '@/types/type';
 import { quranApi } from '@/utils/api';
 import { checkAndScheduleNotifications } from '@/utils/notifications';
 import {
   fetchPrayerTimesByCity,
   fetchPrayerTimesByCoords,
-  getCurrentAndNextPrayer,
   getAdjustedHijriDate,
+  getCurrentAndNextPrayer,
 } from '@/utils/prayerApi';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Location from 'expo-location';
 import { useFocusEffect } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import { DailyAyah } from '../home/UseHome';
-import { useTranslation } from '@/context/translation-context';
 
 const FALLBACK_AYAH: DailyAyah = {
   text: 'فَإِنَّ مَعَ الْعُسْرِ يُسْرًا',
@@ -112,7 +112,7 @@ export const usePrayer = () => {
         throw new Error('Invalid response from Quran API.');
       }
     } catch (err) {
-      console.error('[PrayerScreen] Error loading daily ayah:', err);
+      console.error('PrayerScreen Error loading daily ayah:', err);
       try {
         const cached = await AsyncStorage.getItem('daily_ayah');
         if (cached) {
@@ -218,7 +218,7 @@ export const usePrayer = () => {
           setInputCountry(currentCountry);
           await fetchTimingsByCity(currentCity, currentCountry, currentMethod, currentSchool);
         } catch (err) {
-          console.error('[PrayerScreen] Error loading settings:', err);
+          console.error('PrayerScreen Error loading settings:', err);
           await fetchTimingsByCity('Karachi', 'Pakistan', 1, 1);
         }
       };

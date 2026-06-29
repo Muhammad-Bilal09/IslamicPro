@@ -1,8 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Location from 'expo-location';
-import { useEffect, useState } from 'react';
-import { Platform } from 'react-native';
 import { Magnetometer } from 'expo-sensors';
+import { useEffect, useState } from 'react';
 
 export const useQibla = () => {
   const [city, setCity] = useState('London, UK');
@@ -54,11 +53,8 @@ export const useQibla = () => {
     const newY = Math.sin(rad);
 
     setHeadingVector((prev) => {
-      // Apply Low Pass Filter on Cartesian coordinates to smooth out jitter
       const smoothedX = prev.x * 0.85 + newX * 0.15;
       const smoothedY = prev.y * 0.85 + newY * 0.15;
-
-      // Calculate angle back from the smoothed coordinates
       let smoothedAngle = Math.atan2(smoothedY, smoothedX) * (180 / Math.PI);
       smoothedAngle = (smoothedAngle + 360) % 360;
 
@@ -113,7 +109,7 @@ export const useQibla = () => {
           }
         }
       } catch (geoErr) {
-        console.warn('[QiblaScreen] Reverse geocoding failed:', geoErr);
+        console.warn('QiblaScreen Reverse geocoding failed:', geoErr);
       }
 
       setCity(detectedCity);
@@ -202,21 +198,19 @@ export const useQibla = () => {
           return;
         }
       } catch (err) {
-        console.warn('[QiblaScreen] watchHeadingAsync failed, falling back to Magnetometer:', err);
+        console.warn('QiblaScreen watchHeadingAsync failed, falling back to Magnetometer:', err);
       }
 
-      // Fallback: Magnetometer sensor from expo-sensors
       try {
         const isAvailable = await Magnetometer.isAvailableAsync();
         if (isAvailable) {
           Magnetometer.setUpdateInterval(100);
           magnetometerSubscription = Magnetometer.addListener((data) => {
             let { x, y } = data;
-            
-            // Calculate heading in degrees relative to magnetic North
+
             let angle = Math.atan2(-x, y) * (180 / Math.PI);
             angle = (angle + 360) % 360;
-            
+
             smoothHeadingUpdate(angle);
             setHasMagnetometer(true);
           });
@@ -224,7 +218,7 @@ export const useQibla = () => {
           setHasMagnetometer(false);
         }
       } catch (err) {
-        console.warn('[QiblaScreen] Magnetometer fallback failed:', err);
+        console.warn('QiblaScreen Magnetometer fallback failed:', err);
         setHasMagnetometer(false);
       }
     };
@@ -244,7 +238,6 @@ export const useQibla = () => {
   const dialRotation = hasMagnetometer ? `${360 - heading}deg` : '0deg';
   const needleRotation = `${qiblaBearing}deg`;
 
-  // Calculate relative direction angle (where Qibla is relative to phone's current facing)
   const relativeAngle = (qiblaBearing - heading + 360) % 360;
   const isAligned = hasMagnetometer && (relativeAngle <= 6 || relativeAngle >= 354);
 

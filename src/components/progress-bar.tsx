@@ -1,9 +1,8 @@
-import React from 'react';
-import { View, StyleSheet, type ViewStyle } from 'react-native';
 import { useTheme } from '@/hooks/use-theme';
+import { StyleSheet, View, type ViewStyle } from 'react-native';
 
 export interface ProgressBarProps {
-  progress: number; // 0 to 1
+  progress: number;
   height?: number;
   trackColor?: string;
   progressColor?: string;
@@ -19,7 +18,6 @@ export function ProgressBar({
 }: ProgressBarProps) {
   const theme = useTheme();
 
-  // Clamp progress between 0 and 1
   const clampedProgress = Math.max(0, Math.min(1, progress));
 
   return (

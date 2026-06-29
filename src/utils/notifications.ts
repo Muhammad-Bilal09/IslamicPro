@@ -27,7 +27,7 @@ if (Notifications && Platform.OS !== 'web') {
       }),
     });
   } catch (err) {
-    console.warn('[NotificationService] Failed to configure notification handler:', err);
+    console.warn('NotificationService Failed to configure notification handler:', err);
   }
 }
 
@@ -49,7 +49,7 @@ export async function configureNotificationChannel(): Promise<void> {
         await Notifications.deleteNotificationChannelAsync('prayer-alerts-azan-v5');
         await Notifications.deleteNotificationChannelAsync('prayer-alerts-azan-v6');
       } catch (err) {
-        console.warn('[NotificationService] Failed to delete old channels:', err);
+        console.warn('NotificationService Failed to delete old channels:', err);
       }
 
       await Notifications.setNotificationChannelAsync('prayer-alerts-default-v2', {
@@ -79,15 +79,15 @@ export async function configureNotificationChannel(): Promise<void> {
           contentType: Notifications.AndroidAudioContentType.SONIFICATION,
         },
       });
-      console.log('[NotificationService] Android notification channels configured.');
+      console.log('NotificationService Android notification channels configured.');
     } catch (err) {
-      console.warn('[NotificationService] Failed to set notification channels:', err);
+      console.warn('NotificationService Failed to set notification channels:', err);
     }
   }
 }
 export async function requestNotificationPermissions(): Promise<boolean> {
   if (Platform.OS === 'web' || !Notifications) {
-    console.log('[NotificationService] Notifications are not supported on this platform/client.');
+    console.log('NotificationService Notifications are not supported on this platform/client.');
     return false;
   }
 
@@ -108,7 +108,7 @@ export async function requestNotificationPermissions(): Promise<boolean> {
 
     return finalStatus === 'granted';
   } catch (error) {
-    console.error('[NotificationService] Error requesting notification permissions:', error);
+    console.error('NotificationService Error requesting notification permissions:', error);
     return false;
   }
 }
@@ -117,9 +117,9 @@ export async function cancelAllScheduledNotifications(): Promise<void> {
   if (Platform.OS === 'web' || !Notifications) return;
   try {
     await Notifications.cancelAllScheduledNotificationsAsync();
-    console.log('[NotificationService] Cancelled all scheduled notifications.');
+    console.log('NotificationService Cancelled all scheduled notifications.');
   } catch (error) {
-    console.error('[NotificationService] Error cancelling notifications:', error);
+    console.error('NotificationService Error cancelling notifications:', error);
   }
 }
 
@@ -128,7 +128,7 @@ export async function schedulePrayerNotifications(
   toggles?: Record<string, boolean>
 ): Promise<void> {
   if (Platform.OS === 'web' || !Notifications) {
-    console.log('[NotificationService] Local notifications disabled (Expo Go/Web limitations).');
+    console.log('NotificationService Local notifications disabled (Expo Go/Web limitations).');
     return;
   }
 
@@ -137,14 +137,14 @@ export async function schedulePrayerNotifications(
 
     const hasPermission = await requestNotificationPermissions();
     if (!hasPermission) {
-      console.log('[NotificationService] No notification permissions granted. Cannot schedule.');
+      console.log('NotificationService No notification permissions granted. Cannot schedule.');
       return;
     }
 
     const globalRemindersVal = await AsyncStorage.getItem('prayer_reminders_enabled');
     const globalRemindersEnabled = globalRemindersVal !== 'false';
     if (!globalRemindersEnabled) {
-      console.log('[NotificationService] Global prayer reminders disabled. Cancelled all alerts.');
+      console.log('NotificationService Global prayer reminders disabled. Cancelled all alerts.');
       return;
     }
 
@@ -162,8 +162,6 @@ export async function schedulePrayerNotifications(
         Isha: true,
       };
     }
-
-    // Check if Adhan sound is enabled (defaults to true)
     const storedAdhanSound = await AsyncStorage.getItem('adhan_sound_enabled');
     const isAdhanSoundEnabled = storedAdhanSound !== 'false';
 
@@ -187,12 +185,12 @@ export async function schedulePrayerNotifications(
     const schoolId = storedSchool ? parseInt(storedSchool, 10) : 1;
 
     const enabledPrayersCount = Object.values(activeToggles || {}).filter(Boolean).length;
-    let daysToScheduleCount = 10;
+    let daysToScheduleCount = Platform.OS === 'android' ? 30 : 10;
 
     if (Platform.OS === 'ios') {
       const totalToSchedule = enabledPrayersCount * daysToScheduleCount;
       if (totalToSchedule > 60) {
-        console.warn(`[NotificationService] Total notifications (${totalToSchedule}) would exceed safe iOS limit of 60. Trimming days to schedule.`);
+        console.warn(`NotificationService Total notifications (${totalToSchedule}) would exceed safe iOS limit of 60. Trimming days to schedule.`);
         daysToScheduleCount = Math.floor(60 / Math.max(1, enabledPrayersCount));
       }
     }
@@ -221,7 +219,7 @@ export async function schedulePrayerNotifications(
         );
         calendars[`${item.year}-${item.month}`] = calData;
       } catch (err) {
-        console.error(`[NotificationService] Error getting calendar for ${item.year}-${item.month}:`, err);
+        console.error(`NotificationService Error getting calendar for ${item.year}-${item.month}:`, err);
       }
     }
 
@@ -275,7 +273,7 @@ export async function schedulePrayerNotifications(
             });
             scheduleCount++;
           } catch (error: any) {
-            console.error(`[NotificationService] Error scheduling ${prayerName} notification for ${triggerDate.toLocaleString()}:`, error);
+            console.error(`NotificationService Error scheduling ${prayerName} notification for ${triggerDate.toLocaleString()}:`, error);
             const errMsg = error?.message || '';
             if (
               Platform.OS === 'android' &&
@@ -289,7 +287,7 @@ export async function schedulePrayerNotifications(
       }
     }
 
-    console.log(`NotificationService Successfully scheduled ${scheduleCount} notifications for the next 10 days.`);
+    console.log(`NotificationService Successfully scheduled ${scheduleCount} notifications for the next ${daysToScheduleCount} days.`);
 
     if (exactAlarmPermissionDenied) {
       showGlobalAlert(
@@ -304,7 +302,7 @@ export async function schedulePrayerNotifications(
                 Linking.sendIntent('android.settings.REQUEST_SCHEDULE_EXACT_ALARM', [
                   { key: 'data', value: 'package:com.r_bilal.Ameen' }
                 ]).catch((err) => {
-                  console.warn('[NotificationService] Failed to open exact alarm settings via intent, falling back to openSettings:', err);
+                  console.warn('NotificationService Failed to open exact alarm settings via intent, falling back to openSettings:', err);
                   Linking.openSettings();
                 });
               } else {
@@ -322,7 +320,7 @@ export async function schedulePrayerNotifications(
     }
 
   } catch (globalErr) {
-    console.error('[NotificationService] General error scheduling notifications:', globalErr);
+    console.error('NotificationService General error scheduling notifications:', globalErr);
   }
 }
 
@@ -335,19 +333,19 @@ export async function checkAndScheduleNotifications(
     const lastScheduledDate = await AsyncStorage.getItem('last_scheduled_date');
 
     if (!force && lastScheduledDate === todayStr) {
-      console.log('[NotificationService] Notifications already scheduled for today. Skipping check.');
+      console.log('NotificationService Notifications already scheduled for today. Skipping check.');
       const activeCount = await getScheduledNotificationsCount();
-      console.log(`[NotificationService] Current active notifications in OS: ${activeCount}`);
+      console.log(`NotificationService Current active notifications in OS: ${activeCount}`);
       return;
     }
 
-    console.log('[NotificationService] Triggering scheduler (force = ' + force + ').');
+    console.log('NotificationService Triggering scheduler (force = ' + force + ').');
     await schedulePrayerNotifications();
 
     const activeCount = await getScheduledNotificationsCount();
-    console.log(`[NotificationService] Reschedule completed. Current active notifications in OS: ${activeCount}`);
+    console.log(`NotificationService Reschedule completed. Current active notifications in OS: ${activeCount}`);
   } catch (error) {
-    console.error('[NotificationService] Error in checkAndScheduleNotifications:', error);
+    console.error('NotificationService Error in checkAndScheduleNotifications:', error);
   }
 }
 
@@ -361,14 +359,14 @@ function getTodayDateString(): string {
 
 export async function triggerTestNotification(): Promise<string | null> {
   if (Platform.OS === 'web' || !Notifications) {
-    console.log('[NotificationService] Notifications are not supported on this platform/client.');
+    console.log('NotificationService Notifications are not supported on this platform/client.');
     return null;
   }
 
   try {
     const hasPermission = await requestNotificationPermissions();
     if (!hasPermission) {
-      console.log('[NotificationService] No notification permissions granted for test alert.');
+      console.log('NotificationService No notification permissions granted for test alert.');
       return null;
     }
 
@@ -396,10 +394,10 @@ export async function triggerTestNotification(): Promise<string | null> {
       },
     });
 
-    console.log(`[NotificationService] Test notification scheduled in 5 seconds (ID: ${identifier})`);
+    console.log(`NotificationService Test notification scheduled in 5 seconds (ID: ${identifier})`);
     return identifier;
   } catch (error) {
-    console.error('[NotificationService] Error triggering test notification:', error);
+    console.error('NotificationService Error triggering test notification:', error);
     return null;
   }
 }
@@ -410,7 +408,7 @@ export async function getScheduledNotificationsCount(): Promise<number> {
     const scheduled = await Notifications.getAllScheduledNotificationsAsync();
     return scheduled.length;
   } catch (error) {
-    console.error('[NotificationService] Error getting scheduled notifications count:', error);
+    console.error('NotificationService Error getting scheduled notifications count:', error);
     return 0;
   }
 }

@@ -46,7 +46,6 @@ export function SurahListItem({
   );
 }
 
-// Separate component text element since react-native-web has issues rendering standard arabic font alignment on Text
 import { Text } from 'react-native';
 
 const styles = StyleSheet.create({

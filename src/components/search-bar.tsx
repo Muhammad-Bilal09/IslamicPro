@@ -1,8 +1,7 @@
-import React from 'react';
-import { View, StyleSheet, TextInput } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { useTheme } from '@/hooks/use-theme';
 import { Spacing } from '@/constants/theme';
+import { useTheme } from '@/hooks/use-theme';
+import { Ionicons } from '@expo/vector-icons';
+import { StyleSheet, TextInput, View } from 'react-native';
 
 export interface SearchBarProps {
   value: string;
@@ -53,7 +52,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 14,
     height: '100%',
-    padding: 0, // Reset default padding
+    padding: 0,
   },
 });
 

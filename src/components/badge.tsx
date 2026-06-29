@@ -1,7 +1,6 @@
-import React from 'react';
-import { View, StyleSheet, Text, type ViewStyle, type TextStyle } from 'react-native';
-import { useTheme } from '@/hooks/use-theme';
 import { Spacing } from '@/constants/theme';
+import { useTheme } from '@/hooks/use-theme';
+import { StyleSheet, Text, View, type TextStyle, type ViewStyle } from 'react-native';
 
 export interface BadgeProps {
   text: string;
@@ -31,7 +30,7 @@ export function Badge({ text, variant = 'primary', style, textStyle }: BadgeProp
         textColor = '#FFFFFF';
         break;
       case 'success':
-        backgroundColor = theme.success + '20'; // 12% opacity
+        backgroundColor = theme.success + '20';
         textColor = theme.success;
         break;
       case 'warning':

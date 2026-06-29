@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
-import { View, TextInput, Pressable, StyleSheet, TextInputProps } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { useTheme } from '@/hooks/use-theme';
 import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
+import { useTheme } from '@/hooks/use-theme';
+import { Ionicons } from '@expo/vector-icons';
+import { useState } from 'react';
+import { Pressable, StyleSheet, TextInput, TextInputProps, View } from 'react-native';
 
 interface FormInputProps extends TextInputProps {
   label: string;
@@ -23,7 +23,7 @@ export function FormInput({
   const theme = useTheme();
   const [showPassword, setShowPassword] = useState(false);
 
-  const hasFocus = false; // Could add focus state if needed
+  const hasFocus = false;
 
   return (
     <View style={styles.wrapper}>

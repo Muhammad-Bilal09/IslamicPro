@@ -1,11 +1,11 @@
-import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
-import { useAudioPlayer, useAudioPlayerStatus, setAudioModeAsync } from 'expo-audio';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { UnifiedAyah } from '@/types/type';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { setAudioModeAsync, useAudioPlayer, useAudioPlayerStatus } from 'expo-audio';
+import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
 
 export interface PlayingContext {
   type: 'surah' | 'juz' | null;
-  id: number | null; // surahId or juzId
+  id: number | null;
   title: string;
 }
 
@@ -59,7 +59,6 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }).catch(() => { });
   }, []);
 
-  // Handle auto advance when the current audio finishes playing
   useEffect(() => {
     if (status.didJustFinish && autoAdvanceRef.current) {
       const currentIdx = currentAyahIndexRef.current;

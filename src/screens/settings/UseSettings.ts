@@ -106,27 +106,6 @@ export const useSettings = () => {
       console.error('Failed to save daily ayah setting:', error);
     }
   };
-
-  //   const handleTestAlert = async () => {
-  //     const id = await triggerTestNotification();
-  //     if (id) {
-  //       const count = await getScheduledNotificationsCount();
-  //       showAlert(
-  //         'Test Alert Scheduled ✅',
-  //         `You will receive a test prayer notification in 5 seconds. Please put the app in the background.
-
-  // Active scheduled alerts in system: ${count}`,
-  //         [{ text: 'OK' }]
-  //       );
-  //     } else {
-  //       showAlert(
-  //         'Alert Failed ❌',
-  //         'Could not schedule notification. Please check that notification permissions are enabled for this app in your device settings.',
-  //         [{ text: 'OK' }]
-  //       );
-  //     }
-  //   };
-
   const updateMethod = async (methodId: number) => {
     setCalculationMethod(methodId);
     try {
@@ -205,7 +184,6 @@ export const useSettings = () => {
     juristicSchool,
     handleToggleReminder,
     handleToggleSound,
-    // handleTestAlert,
     handleSelectMethod,
     handleSelectSchool,
     logout,

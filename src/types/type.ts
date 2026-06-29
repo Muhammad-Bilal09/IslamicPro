@@ -37,7 +37,6 @@ export type Surah = {
     number: number;
     englishName: string;
     arabicName: string;
-    // type: 'MECCAN' | 'MEDINAN';
     ayahCount: number;
     englishNameTranslation: string;
 }

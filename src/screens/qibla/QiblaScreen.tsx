@@ -45,67 +45,6 @@ export function QiblaScreen() {
               : 'Align phone top to True North to find direction'}
           </ThemedText>
         </View>
-
-        {/* {isLoading && (
-          <View style={styles.loader}>
-            <ActivityIndicator size="small" color={theme.primary} />
-            <ThemedText style={styles.loaderText} themeColor="textSecondary">Calibrating position...</ThemedText>
-          </View>
-        )}
-
-        {errorMsg && (
-          <Card variant="outlined" style={styles.errorCard}>
-            <Ionicons name="alert-circle" size={18} color={theme.accent} />
-            <ThemedText style={styles.errorText}>{errorMsg}</ThemedText>
-          </Card>
-        )} */}
-
-        {/* <Card
-          variant="elevated"
-          style={{
-            backgroundColor:
-              guidanceAction === 'aligned'
-                ? '#E8F5E9'
-                : '#FFF9C4',
-            borderColor:
-              guidanceAction === 'aligned'
-                ? '#4CAF50'
-                : '#FBC02D',
-            borderWidth: 1.5,
-            padding: Spacing.four,
-            borderRadius: 16,
-            alignItems: 'center',
-            width: '100%',
-            gap: 6,
-            marginTop: Spacing.two,
-            shadowColor: guidanceAction === 'aligned' ? '#4CAF50' : '#FBC02D',
-            shadowOpacity: 0.1,
-            shadowRadius: 6,
-            elevation: 2,
-          }}
-        >
-          <View style={{ marginBottom: 4 }}>
-            {guidanceAction === 'aligned' ? (
-              <Ionicons name="checkmark-circle" size={38} color="#2E7D32" />
-            ) : guidanceAction === 'left' ? (
-              <Ionicons name="arrow-undo-circle" size={38} color="#F57F17" />
-            ) : (
-              <Ionicons name="arrow-redo-circle" size={38} color="#F57F17" />
-            )}
-          </View>
-          <ThemedText
-            style={{
-              fontSize: 17,
-              fontWeight: '800',
-              color: guidanceAction === 'aligned' ? '#1B5E20' : '#E65100',
-              textAlign: 'center',
-              letterSpacing: 0.2,
-            }}
-          >
-            {guidanceText}
-          </ThemedText>
-        </Card> */}
-
         <View style={styles.compassWrapper}>
           <View
             style={[
@@ -273,16 +212,6 @@ export function QiblaScreen() {
             <ThemedText style={styles.outlineBtnText}>Recalibrate GPS</ThemedText>
           </Pressable>
         </View>
-
-        {/* {!hasMagnetometer && (
-          <Card variant="outlined" style={styles.sensorWarningCard}>
-            <Ionicons name="information-circle-outline" size={20} color={theme.textSecondary} />
-            <ThemedText style={styles.warningText} themeColor="textSecondary">
-              Compass sensors (magnetometer) not detected on this client. Dial is statically facing North. Place phone flat and align the Top of phone to North.
-            </ThemedText>
-          </Card>
-        )} */}
-
         <View style={{ height: 100 }} />
       </ScrollView>
     </SafeAreaView>

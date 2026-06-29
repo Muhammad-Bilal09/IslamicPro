@@ -114,7 +114,7 @@ export function SurahScreen() {
           }}
         >
           <ThemedText style={{ fontSize: 10, fontWeight: '800', color: theme.primary }}>
-            {translationLang === 'ur' ? 'ENGLISH' : 'urdu'}
+            {translationLang === 'ur' ? 'ENGLISH' : 'URDU'}
           </ThemedText>
         </Pressable>
       </View>

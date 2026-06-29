@@ -1,19 +1,18 @@
-import { useColorScheme } from '@/hooks/use-color-scheme';
-import { DarkTheme, DefaultTheme, ThemeProvider } from 'expo-router';
-import { useEffect, useState } from 'react';
-import { ActivityIndicator, StyleSheet, View } from 'react-native';
-
 import { MiniPlayer } from '@/components/mini-player';
 import { Colors } from '@/constants/theme';
 import { AudioProvider } from '@/context/audio-context';
 import { AuthProvider, useAuth } from '@/context/auth-context';
 import { TranslationProvider } from '@/context/translation-context';
+import { useColorScheme } from '@/hooks/use-color-scheme';
 import { AppBottomTabNavigator } from '@/navigation/bottom-tab';
 import { ForgotPasswordScreen } from '@/screens/forgotPassword/ForgotPasswordScreen';
 import { LocationSetupScreen } from '@/screens/locationSetup/LocationSetupScreen';
 import { LoginScreen } from '@/screens/login/LoginScreen';
 import { RegisterScreen } from '@/screens/register/RegisterScreen';
 import { checkAndScheduleNotifications } from '@/utils/notifications';
+import { DarkTheme, DefaultTheme, ThemeProvider } from 'expo-router';
+import { useEffect, useState } from 'react';
+import { ActivityIndicator, StyleSheet, View } from 'react-native';
 
 function RootNavigator() {
   const { token, location, isLoading } = useAuth();
