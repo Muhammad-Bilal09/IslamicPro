@@ -11,8 +11,11 @@ import { LoginScreen } from '@/screens/login/LoginScreen';
 import { RegisterScreen } from '@/screens/register/RegisterScreen';
 import { checkAndScheduleNotifications } from '@/utils/notifications';
 import { DarkTheme, DefaultTheme, ThemeProvider } from 'expo-router';
+import * as SplashScreen from 'expo-splash-screen';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+
+SplashScreen.preventAutoHideAsync().catch(() => { });
 
 function RootNavigator() {
   const { token, location, isLoading } = useAuth();
@@ -22,17 +25,19 @@ function RootNavigator() {
   const [authScreen, setAuthScreen] = useState<'register' | 'login' | 'forgot-password'>('register');
 
   useEffect(() => {
+    if (!isLoading) {
+      SplashScreen.hideAsync().catch(() => { });
+    }
+  }, [isLoading]);
+
+  useEffect(() => {
     if (token && location) {
       checkAndScheduleNotifications(location);
     }
   }, [token, location]);
 
   if (isLoading) {
-    return (
-      <View style={[styles.centered, { backgroundColor: colors.background }]}>
-        <ActivityIndicator size="large" color={colors.primary} />
-      </View>
-    );
+    return null;
   }
 
   if (!token) {

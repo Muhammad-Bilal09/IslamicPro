@@ -5,6 +5,7 @@ import { LoginScreenProps } from '@/types/type';
 import { Ionicons } from '@expo/vector-icons';
 import {
   ActivityIndicator,
+  Image,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -48,11 +49,15 @@ export function LoginScreen({ onGoToRegister, onGoToForgotPassword }: LoginScree
         showsVerticalScrollIndicator={false}
       >
         <Animated.View entering={FadeInUp.delay(80).duration(500)} style={styles.header}>
-          <View style={[styles.logoCircle, { backgroundColor: theme.primaryLight }]}>
-            <Ionicons name="moon-outline" size={34} color={theme.primary} />
+          <View style={[styles.logoCircle, { backgroundColor: theme.primaryLight, overflow: 'hidden' }]}>
+            <Image
+              source={require('../../../assets/images/icon.png')}
+              style={{ width: '100%', height: '100%' }}
+              resizeMode="cover"
+            />
           </View>
           <ThemedText style={styles.appName} themeColor="text">
-            Ameen
+            Amin
           </ThemedText>
           <ThemedText style={styles.tagline} themeColor="textSecondary">
             Welcome back — sign in to continue

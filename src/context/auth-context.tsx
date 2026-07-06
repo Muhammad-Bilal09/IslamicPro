@@ -141,7 +141,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const guestUser: UserProfile = {
       _id: 'guest_id',
       name: 'Guest User',
-      email: 'guest@ameen.app',
+      email: 'guest@amin.app',
     };
     setUser(guestUser);
     setToken('guest');

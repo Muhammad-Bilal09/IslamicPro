@@ -1,25 +1,28 @@
 {
   "expo": {
-    "name": "Ameen",
-    "slug": "Ameen",
+    "name": "Amin",
+    "slug": "Amin",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "ameen",
+    "scheme": "amin",
     "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/images/icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#FCFAF6"
+    },
     "ios": {
-      "icon": "./assets/expo.icon",
-      "bundleIdentifier": "yes",
+      "icon": "./assets/images/icon.png",
+      "bundleIdentifier": "com.r_bilal.Amin",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/images/android-icon-foreground.png",
-        "backgroundImage": "./assets/images/android-icon-background.png",
-        "monochromeImage": "./assets/images/android-icon-monochrome.png"
+        "backgroundColor": "#FCFAF6",
+        "foregroundImage": "./assets/images/icon.png"
       },
       "predictiveBackGestureEnabled": false,
       "permissions": [
@@ -29,10 +32,17 @@
         "android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK",
         "android.permission.POST_NOTIFICATIONS",
         "android.permission.SCHEDULE_EXACT_ALARM",
-        "android.permission.USE_EXACT_ALARM",
         "android.permission.RECEIVE_BOOT_COMPLETED"
       ],
-      "package": "com.r_bilal.Ameen"
+      "blockedPermissions": [
+        "android.permission.ACTIVITY_RECOGNITION"
+      ],
+      "package": "com.r_bilal.Amin",
+      "splash": {
+        "image": "./assets/images/icon.png",
+        "resizeMode": "contain",
+        "backgroundColor": "#FCFAF6"
+      }
     },
     "web": {
       "output": "static",
@@ -43,11 +53,9 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#208AEF",
-          "android": {
-            "image": "./assets/images/splash-icon.png",
-            "imageWidth": 76
-          }
+          "image": "./assets/images/icon.png",
+          "resizeMode": "contain",
+          "backgroundColor": "#FCFAF6"
         }
       ],
       [
@@ -68,7 +76,7 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "6884abc2-c853-4f84-b0d3-b5a5aa2909b1"
+        "projectId": "ab1404bc-c692-4edf-b8fc-c2fcfe58db91"
       }
     }
   }

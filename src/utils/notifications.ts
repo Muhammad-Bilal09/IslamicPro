@@ -20,6 +20,7 @@ if (Notifications && Platform.OS !== 'web') {
   try {
     Notifications.setNotificationHandler({
       handleNotification: async () => ({
+        shouldShowAlert: true,
         shouldShowBanner: true,
         shouldShowList: true,
         shouldPlaySound: true,
@@ -133,8 +134,6 @@ export async function schedulePrayerNotifications(
   }
 
   try {
-    await cancelAllScheduledNotifications();
-
     const hasPermission = await requestNotificationPermissions();
     if (!hasPermission) {
       console.log('NotificationService No notification permissions granted. Cannot schedule.');
@@ -145,6 +144,7 @@ export async function schedulePrayerNotifications(
     const globalRemindersEnabled = globalRemindersVal !== 'false';
     if (!globalRemindersEnabled) {
       console.log('NotificationService Global prayer reminders disabled. Cancelled all alerts.');
+      await cancelAllScheduledNotifications();
       return;
     }
 
@@ -185,15 +185,7 @@ export async function schedulePrayerNotifications(
     const schoolId = storedSchool ? parseInt(storedSchool, 10) : 1;
 
     const enabledPrayersCount = Object.values(activeToggles || {}).filter(Boolean).length;
-    let daysToScheduleCount = Platform.OS === 'android' ? 30 : 10;
-
-    if (Platform.OS === 'ios') {
-      const totalToSchedule = enabledPrayersCount * daysToScheduleCount;
-      if (totalToSchedule > 60) {
-        console.warn(`NotificationService Total notifications (${totalToSchedule}) would exceed safe iOS limit of 60. Trimming days to schedule.`);
-        daysToScheduleCount = Math.floor(60 / Math.max(1, enabledPrayersCount));
-      }
-    }
+    let daysToScheduleCount = 7;
 
     const datesToSchedule: Date[] = [];
     for (let i = 0; i < daysToScheduleCount; i++) {
@@ -223,11 +215,10 @@ export async function schedulePrayerNotifications(
       }
     }
 
-    let scheduleCount = 0;
-    let exactAlarmPermissionDenied = false;
+    // 1. Prepare notifications list first
+    const notificationsToSchedule: { triggerDate: Date; prayerName: string; seconds: number }[] = [];
 
     for (const targetDate of datesToSchedule) {
-      if (exactAlarmPermissionDenied) break;
       const y = targetDate.getFullYear();
       const m = targetDate.getMonth() + 1;
       const dayNum = targetDate.getDate();
@@ -238,7 +229,6 @@ export async function schedulePrayerNotifications(
       if (!dayTimings) continue;
 
       for (const [prayerName, isEnabled] of Object.entries(activeToggles || {})) {
-        if (exactAlarmPermissionDenied) break;
         if (!isEnabled) continue;
 
         const timeStr = dayTimings[prayerName];
@@ -257,6 +247,81 @@ export async function schedulePrayerNotifications(
         triggerDate.setHours(hour, minute, 0, 0);
 
         if (triggerDate.getTime() > Date.now()) {
+          const seconds = Math.floor((triggerDate.getTime() - Date.now()) / 1000);
+          if (seconds <= 0) continue;
+
+          notificationsToSchedule.push({
+            triggerDate,
+            prayerName,
+            seconds,
+          });
+        }
+      }
+    }
+
+    if (notificationsToSchedule.length === 0) {
+      console.log('NotificationService No upcoming notifications found to schedule. Skipping cancel/reschedule.');
+      return;
+    }
+
+    // 2. Only cancel and schedule when we actually have notifications to schedule!
+    await cancelAllScheduledNotifications();
+
+    let scheduleCount = 0;
+    let exactAlarmPermissionDenied = false;
+    let useInexactFallback = false;
+
+    for (const item of notificationsToSchedule) {
+      const { triggerDate, prayerName, seconds } = item;
+
+      if (useInexactFallback) {
+        try {
+          await Notifications.scheduleNotificationAsync({
+            content: {
+              title: `Prayer Alert: ${prayerName}`,
+              body: `It's time for ${prayerName} prayer.`,
+              sound: soundFile,
+              data: { prayerName },
+            },
+            trigger: {
+              type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
+              seconds,
+              channelId,
+            },
+          });
+          scheduleCount++;
+        } catch (fallbackErr) {
+          console.error(`NotificationService Fallback scheduling failed for ${prayerName}:`, fallbackErr);
+        }
+        continue;
+      }
+
+      try {
+        await Notifications.scheduleNotificationAsync({
+          content: {
+            title: `Prayer Alert: ${prayerName}`,
+            body: `It's time for ${prayerName} prayer.`,
+            sound: soundFile,
+            data: { prayerName },
+          },
+          trigger: {
+            type: Notifications.SchedulableTriggerInputTypes.DATE,
+            date: triggerDate.getTime(), // Use timestamp number instead of Date object
+            channelId,
+          },
+        });
+        scheduleCount++;
+      } catch (error: any) {
+        console.error(`NotificationService Error scheduling ${prayerName} notification for ${triggerDate.toLocaleString()}:`, error);
+        const errMsg = error?.message || '';
+        if (
+          Platform.OS === 'android' &&
+          EXACT_ALARM_ERROR_PATTERNS.some((pattern) => errMsg.includes(pattern))
+        ) {
+          exactAlarmPermissionDenied = true;
+          useInexactFallback = true;
+          
+          // Fallback for this current failed item
           try {
             await Notifications.scheduleNotificationAsync({
               content: {
@@ -266,22 +331,14 @@ export async function schedulePrayerNotifications(
                 data: { prayerName },
               },
               trigger: {
-                type: Notifications.SchedulableTriggerInputTypes.DATE,
-                date: triggerDate,
+                type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
+                seconds,
                 channelId,
               },
             });
             scheduleCount++;
-          } catch (error: any) {
-            console.error(`NotificationService Error scheduling ${prayerName} notification for ${triggerDate.toLocaleString()}:`, error);
-            const errMsg = error?.message || '';
-            if (
-              Platform.OS === 'android' &&
-              EXACT_ALARM_ERROR_PATTERNS.some((pattern) => errMsg.includes(pattern))
-            ) {
-              exactAlarmPermissionDenied = true;
-              break;
-            }
+          } catch (fallbackErr) {
+            console.error(`NotificationService Fallback scheduling failed for ${prayerName} after exact alarm error:`, fallbackErr);
           }
         }
       }
@@ -292,7 +349,7 @@ export async function schedulePrayerNotifications(
     if (exactAlarmPermissionDenied) {
       showGlobalAlert(
         'Alarms & Reminders Permission',
-        'To play the Adhan exactly at prayer times, Ameen needs the "Alarms & reminders" permission. Please enable it in Settings.',
+        'To play the Adhan exactly at prayer times, Amin needs the "Alarms & reminders" permission. Please enable it in Settings.',
         [
           { text: 'Cancel', style: 'cancel' },
           {
@@ -300,7 +357,7 @@ export async function schedulePrayerNotifications(
             onPress: () => {
               if (Platform.OS === 'android') {
                 Linking.sendIntent('android.settings.REQUEST_SCHEDULE_EXACT_ALARM', [
-                  { key: 'data', value: 'package:com.r_bilal.Ameen' }
+                  { key: 'data', value: 'package:com.r_bilal.Amin' }
                 ]).catch((err) => {
                   console.warn('NotificationService Failed to open exact alarm settings via intent, falling back to openSettings:', err);
                   Linking.openSettings();
@@ -314,7 +371,7 @@ export async function schedulePrayerNotifications(
       );
     }
 
-    if (!exactAlarmPermissionDenied && scheduleCount > 0) {
+    if (scheduleCount > 0) {
       const todayStr = getTodayDateString();
       await AsyncStorage.setItem('last_scheduled_date', todayStr);
     }

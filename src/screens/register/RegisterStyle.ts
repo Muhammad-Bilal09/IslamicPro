@@ -18,6 +18,7 @@ export const styles = StyleSheet.create({
     shadowOpacity: 0.08,
     shadowRadius: 8,
     elevation: 3,
+    marginTop: Spacing.three
   },
   appName: { fontSize: 24, fontWeight: '800', marginBottom: 4 },
   tagline: { fontSize: 13.5, textAlign: 'center', lineHeight: 20, paddingHorizontal: Spacing.four },
