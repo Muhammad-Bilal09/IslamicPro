@@ -86,8 +86,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 setUser(data.data);
                 await AsyncStorage.setItem('userData', JSON.stringify(data.data));
               }
-            } catch {
-              await clearSession();
+            } catch (err) {
+              console.warn('[AuthContext] Profile fetch failed (offline?):', err);
             }
           }
         }

@@ -64,6 +64,17 @@ export const styles = StyleSheet.create({
   },
   submitText: { fontSize: 15.5, fontWeight: '700' },
 
+  guestBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    height: 54,
+    borderRadius: 14,
+    marginTop: Spacing.two,
+  },
+  guestBtnText: { fontSize: 15.5, fontWeight: '700' },
+
   divider: { borderTopWidth: 1, marginVertical: Spacing.four },
 
   switchRow: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 6 },

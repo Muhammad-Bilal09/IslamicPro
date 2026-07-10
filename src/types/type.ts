@@ -174,3 +174,11 @@ export type CurrentAndNextPrayer = {
     totalWaitSeconds: number;
     progress: number;
 }
+
+export interface Bookmark {
+    surahNumber: number;
+    surahName: string;
+    numberInSurah: number;
+    text: string;
+    translation: string;
+}

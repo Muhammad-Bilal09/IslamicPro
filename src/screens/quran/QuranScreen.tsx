@@ -38,6 +38,8 @@ export function QuranScreen() {
     filteredSurahs,
     getSurahName,
     loadSurahs,
+    bookmarks,
+    isLoggedIn,
   } = useQuran();
 
   const renderParaCard = ({ item }: { item: Para }) => {
@@ -256,6 +258,61 @@ export function QuranScreen() {
             columnWrapperStyle={paraColumns > 1 ? styles.paraColumnWrapper : undefined}
             renderItem={renderParaCard}
             ListHeaderComponent={renderParaListHeader}
+            showsVerticalScrollIndicator={false}
+          />
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (selectedTab === 'Bookmarks') {
+    return (
+      <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]} edges={['top']}>
+        <Header title="Quran Majeed" showSearch={false} />
+        <View style={styles.contentWrapper}>
+          <FlatList
+            data={bookmarks}
+            keyExtractor={(item) => `bookmark-${item.surahNumber}-${item.numberInSurah}`}
+            contentContainerStyle={[styles.listContent, { maxWidth: 900, alignSelf: 'center', width: '100%' }]}
+            renderItem={({ item }) => (
+              <Pressable onPress={() => router.push(`/surah/${item.surahNumber}`)}>
+                <Card variant="outlined" style={{ marginVertical: Spacing.one, padding: Spacing.three }}>
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: Spacing.two }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.two }}>
+                      <View style={{ width: 28, height: 28, borderRadius: 14, backgroundColor: theme.primary, alignItems: 'center', justifyContent: 'center' }}>
+                        <ThemedText style={{ color: '#fff', fontSize: 11, fontWeight: 'bold' }}>{item.numberInSurah}</ThemedText>
+                      </View>
+                      <ThemedText style={{ fontWeight: 'bold', fontSize: 15 }}>{item.surahName}</ThemedText>
+                    </View>
+                    <Ionicons name="chevron-forward" size={16} color={theme.textSecondary} />
+                  </View>
+                  <ThemedText style={{ fontSize: 24, textAlign: 'right', fontFamily: 'serif', marginBottom: Spacing.two, color: theme.primary }}>{item.text}</ThemedText>
+                  <ThemedText style={{ fontSize: 13, color: theme.textSecondary }}>{item.translation}</ThemedText>
+                </Card>
+              </Pressable>
+            )}
+            ListHeaderComponent={() => (
+              <View style={styles.headerContainer}>
+                <View style={styles.paddedItem}>
+                  <FilterTabs
+                    tabs={filterTabs}
+                    selectedTab={selectedTab}
+                    onSelectTab={(tab) => {
+                      setSelectedTab(tab);
+                      setSearchQuery('');
+                    }}
+                  />
+                </View>
+                {bookmarks.length === 0 && (
+                  <View style={{ alignItems: 'center', justifyContent: 'center', paddingVertical: 60 }}>
+                    <Ionicons name="bookmark-outline" size={48} color={theme.textSecondary} />
+                    <ThemedText style={{ marginTop: 12, color: theme.textSecondary, fontSize: 14 }}>
+                      No bookmarks saved yet.
+                    </ThemedText>
+                  </View>
+                )}
+              </View>
+            )}
             showsVerticalScrollIndicator={false}
           />
         </View>

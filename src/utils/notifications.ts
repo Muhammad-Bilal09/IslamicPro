@@ -1,8 +1,9 @@
-import { CalendarDayData } from '@/types/type';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Linking, Platform } from 'react-native';
 import { showGlobalAlert } from '../context/alert-context';
-import { getOrFetchPrayerCalendar } from './prayerApi';
+import { getPrayerTimesForDate } from './prayerCalc';
+import * as BackgroundFetch from 'expo-background-fetch';
+import * as TaskManager from 'expo-task-manager';
 
 const EXACT_ALARM_ERROR_PATTERNS = ['exact alarm', 'SecurityException', 'permission', 'not allowed'];
 
@@ -86,6 +87,7 @@ export async function configureNotificationChannel(): Promise<void> {
     }
   }
 }
+
 export async function requestNotificationPermissions(): Promise<boolean> {
   if (Platform.OS === 'web' || !Notifications) {
     console.log('NotificationService Notifications are not supported on this platform/client.');
@@ -176,16 +178,21 @@ export async function schedulePrayerNotifications(
     const storedMethod = await AsyncStorage.getItem('prayer_method');
     const storedSchool = await AsyncStorage.getItem('prayer_school');
 
-    const city = storedCity || 'London';
-    const country = storedCountry || 'United Kingdom';
+    const city = storedCity || 'Karachi';
+    const country = storedCountry || 'Pakistan';
     const useGps = storedUseGps === 'true';
-    const lat = storedLat ? parseFloat(storedLat) : undefined;
-    const lng = storedLng ? parseFloat(storedLng) : undefined;
+    let lat = storedLat ? parseFloat(storedLat) : undefined;
+    let lng = storedLng ? parseFloat(storedLng) : undefined;
     const methodId = storedMethod ? parseInt(storedMethod, 10) : 1;
     const schoolId = storedSchool ? parseInt(storedSchool, 10) : 1;
 
-    const enabledPrayersCount = Object.values(activeToggles || {}).filter(Boolean).length;
-    let daysToScheduleCount = 7;
+    // Use Karachi coordinates as a safe fallback if none exist
+    if (lat === undefined || lng === undefined) {
+      lat = 24.8607;
+      lng = 67.0011;
+    }
+
+    let daysToScheduleCount = 10;
 
     const datesToSchedule: Date[] = [];
     for (let i = 0; i < daysToScheduleCount; i++) {
@@ -194,39 +201,12 @@ export async function schedulePrayerNotifications(
       datesToSchedule.push(d);
     }
 
-    const monthsNeeded: { year: number; month: number }[] = [];
-    for (const d of datesToSchedule) {
-      const y = d.getFullYear();
-      const m = d.getMonth() + 1;
-      if (!monthsNeeded.some(item => item.year === y && item.month === m)) {
-        monthsNeeded.push({ year: y, month: m });
-      }
-    }
-
-    const calendars: Record<string, CalendarDayData[]> = {};
-    for (const item of monthsNeeded) {
-      try {
-        const calData = await getOrFetchPrayerCalendar(
-          city, country, useGps, lat, lng, methodId, schoolId, item.year, item.month
-        );
-        calendars[`${item.year}-${item.month}`] = calData;
-      } catch (err) {
-        console.error(`NotificationService Error getting calendar for ${item.year}-${item.month}:`, err);
-      }
-    }
-
-    // 1. Prepare notifications list first
+    // 2. Prepare notifications list
     const notificationsToSchedule: { triggerDate: Date; prayerName: string; seconds: number }[] = [];
 
     for (const targetDate of datesToSchedule) {
-      const y = targetDate.getFullYear();
-      const m = targetDate.getMonth() + 1;
-      const dayNum = targetDate.getDate();
-
-      const cal = calendars[`${y}-${m}`];
-      const dayTimings = cal && cal[dayNum - 1] ? cal[dayNum - 1].timings : (targetDate.toDateString() === new Date().toDateString() ? timings : null);
-
-      if (!dayTimings) continue;
+      // Calculate local prayer times completely offline
+      const dayTimings = getPrayerTimesForDate(targetDate, lat, lng, methodId, schoolId);
 
       for (const [prayerName, isEnabled] of Object.entries(activeToggles || {})) {
         if (!isEnabled) continue;
@@ -270,6 +250,19 @@ export async function schedulePrayerNotifications(
     let scheduleCount = 0;
     let exactAlarmPermissionDenied = false;
     let useInexactFallback = false;
+
+    // Check exact alarm permission on Android
+    let canExact = true;
+    try {
+      if (Platform.OS === 'android' && Notifications.canScheduleExactAlarmsAsync) {
+        canExact = await Notifications.canScheduleExactAlarmsAsync();
+      }
+    } catch (_) {}
+
+    if (Platform.OS === 'android' && !canExact) {
+      exactAlarmPermissionDenied = true;
+      useInexactFallback = true;
+    }
 
     for (const item of notificationsToSchedule) {
       const { triggerDate, prayerName, seconds } = item;
@@ -374,6 +367,7 @@ export async function schedulePrayerNotifications(
     if (scheduleCount > 0) {
       const todayStr = getTodayDateString();
       await AsyncStorage.setItem('last_scheduled_date', todayStr);
+      await AsyncStorage.setItem('last_timezone_offset', new Date().getTimezoneOffset().toString());
     }
 
   } catch (globalErr) {
@@ -388,8 +382,10 @@ export async function checkAndScheduleNotifications(
   try {
     const todayStr = getTodayDateString();
     const lastScheduledDate = await AsyncStorage.getItem('last_scheduled_date');
+    const lastTimezoneOffset = await AsyncStorage.getItem('last_timezone_offset');
+    const currentTimezoneOffset = new Date().getTimezoneOffset().toString();
 
-    if (!force && lastScheduledDate === todayStr) {
+    if (!force && lastScheduledDate === todayStr && lastTimezoneOffset === currentTimezoneOffset) {
       console.log('NotificationService Notifications already scheduled for today. Skipping check.');
       const activeCount = await getScheduledNotificationsCount();
       console.log(`NotificationService Current active notifications in OS: ${activeCount}`);
@@ -467,5 +463,43 @@ export async function getScheduledNotificationsCount(): Promise<number> {
   } catch (error) {
     console.error('NotificationService Error getting scheduled notifications count:', error);
     return 0;
+  }
+}
+
+const BACKGROUND_PRAYER_NOTIFICATION_TASK = 'background-prayer-notification-task';
+
+if (Platform.OS !== 'web' && TaskManager && BackgroundFetch) {
+  try {
+    TaskManager.defineTask(BACKGROUND_PRAYER_NOTIFICATION_TASK, async () => {
+      try {
+        console.log('[BackgroundFetch] Running background prayer scheduler...');
+        await schedulePrayerNotifications();
+        return BackgroundFetch.BackgroundFetchResult.NewData;
+      } catch (error) {
+        console.error('[BackgroundFetch] Task failed:', error);
+        return BackgroundFetch.BackgroundFetchResult.Failed;
+      }
+    });
+  } catch (err) {
+    console.warn('[NotificationService] TaskManager defineTask failed:', err);
+  }
+}
+
+export async function registerBackgroundNotificationTask() {
+  if (Platform.OS === 'web' || !Notifications) return;
+  try {
+    const isRegistered = await TaskManager.isTaskRegisteredAsync(BACKGROUND_PRAYER_NOTIFICATION_TASK);
+    if (!isRegistered) {
+      await BackgroundFetch.registerTaskAsync(BACKGROUND_PRAYER_NOTIFICATION_TASK, {
+        minimumInterval: 12 * 60 * 60, // 12 hours
+        stopOnTerminate: false, // android only
+        startOnBoot: true, // android only
+      });
+      console.log('[BackgroundFetch] Task registered successfully');
+    } else {
+      console.log('[BackgroundFetch] Task already registered');
+    }
+  } catch (error) {
+    console.error('[BackgroundFetch] Registration failed:', error);
   }
 }

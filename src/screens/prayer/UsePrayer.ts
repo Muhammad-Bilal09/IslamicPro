@@ -13,6 +13,7 @@ import * as Location from 'expo-location';
 import { useFocusEffect } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import { DailyAyah } from '../home/UseHome';
+import { checkIfQuranDownloaded, getRandomAyah } from '@/utils/quranDb';
 
 const FALLBACK_AYAH: DailyAyah = {
   text: 'فَإِنَّ مَعَ الْعُسْرِ يُسْرًا',
@@ -89,27 +90,34 @@ export const usePrayer = () => {
         }
       }
 
-      const randomIdx = Math.floor(Math.random() * 6236) + 1;
-      const translationEdition = translationLang === 'ur' ? 'ur.jalandhry' : 'en.asad';
-      const res = await quranApi.get(`/ayah/${randomIdx}/editions/quran-simple,${translationEdition}`);
-      const data = res.data;
-
-      if (data.code === 200 && Array.isArray(data.data) && data.data.length >= 2) {
-        const arabic = data.data[0];
-        const translation = data.data[1];
-        const newAyah: DailyAyah = {
-          text: arabic.text,
-          translation: translation.text,
-          surahName: arabic.surah.englishName,
-          surahNumber: arabic.surah.number,
-          numberInSurah: arabic.numberInSurah,
-          date: todayStr,
-          lang: translationLang,
-        };
-        await AsyncStorage.setItem('daily_ayah', JSON.stringify(newAyah));
-        setDailyAyahData(newAyah);
+      const downloaded = await checkIfQuranDownloaded();
+      if (downloaded) {
+        const localAyah = await getRandomAyah(translationLang);
+        await AsyncStorage.setItem('daily_ayah', JSON.stringify(localAyah));
+        setDailyAyahData(localAyah);
       } else {
-        throw new Error('Invalid response from Quran API.');
+        const randomIdx = Math.floor(Math.random() * 6236) + 1;
+        const translationEdition = translationLang === 'ur' ? 'ur.jalandhry' : 'en.asad';
+        const res = await quranApi.get(`/ayah/${randomIdx}/editions/quran-simple,${translationEdition}`);
+        const data = res.data;
+
+        if (data.code === 200 && Array.isArray(data.data) && data.data.length >= 2) {
+          const arabic = data.data[0];
+          const translation = data.data[1];
+          const newAyah: DailyAyah = {
+            text: arabic.text,
+            translation: translation.text,
+            surahName: arabic.surah.englishName,
+            surahNumber: arabic.surah.number,
+            numberInSurah: arabic.numberInSurah,
+            date: todayStr,
+            lang: translationLang,
+          };
+          await AsyncStorage.setItem('daily_ayah', JSON.stringify(newAyah));
+          setDailyAyahData(newAyah);
+        } else {
+          throw new Error('Invalid response from Quran API.');
+        }
       }
     } catch (err) {
       console.error('PrayerScreen Error loading daily ayah:', err);

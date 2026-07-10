@@ -2,16 +2,18 @@ import { useEffect, useRef, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { FlatList } from 'react-native';
-import { UnifiedAyah } from '@/types/type';
-import { quranApi } from '@/utils/api';
+import { UnifiedAyah, Bookmark } from '@/types/type';
 import { useAudio } from '@/context/audio-context';
 import { useTranslation } from '@/context/translation-context';
+import { useAuth } from '@/context/auth-context';
+import { getJuzAyahs } from '@/utils/quranDb';
 
 export const useParah = () => {
   const router = useRouter();
   const { id } = useLocalSearchParams();
   const juzId = parseInt(Array.isArray(id) ? id[0] : id, 10);
   const { translationLang } = useTranslation();
+  const { user, token } = useAuth();
 
   const [ayahs, setAyahs] = useState<UnifiedAyah[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -41,44 +43,10 @@ export const useParah = () => {
     setIsLoading(true);
     setErrorMsg(null);
     try {
-      const translationEdition = translationLang === 'ur' ? 'ur.jalandhry' : 'en.asad';
-      const [resArabic, resTrans, resAudio] = await Promise.all([
-        quranApi.get<{ code: number; data: any }>(`/juz/${juzId}/quran-simple`),
-        quranApi.get<{ code: number; data: any }>(`/juz/${juzId}/${translationEdition}`),
-        quranApi.get<{ code: number; data: any }>(`/juz/${juzId}/ar.alafasy`),
-      ]);
-
-      if (
-        resArabic.data.code !== 200 ||
-        resTrans.data.code !== 200 ||
-        resAudio.data.code !== 200
-      ) {
-        throw new Error('API returned an error loading Juz content.');
+      const unified = await getJuzAyahs(juzId, translationLang);
+      if (unified.length === 0) {
+        throw new Error('No verses found locally. Please ensure the Quran is downloaded.');
       }
-
-      const arabicAyahs = resArabic.data.data.ayahs;
-      const translationAyahs = resTrans.data.data.ayahs;
-      const audioAyahs = resAudio.data.data.ayahs;
-
-      if (!arabicAyahs || arabicAyahs.length === 0) {
-        throw new Error('No verses found for this Juz.');
-      }
-
-      const unified: UnifiedAyah[] = arabicAyahs.map((ayah: any, idx: number) => ({
-        number: ayah.number,
-        numberInSurah: ayah.numberInSurah,
-        text: ayah.text,
-        translation: translationAyahs[idx]?.text || '',
-        audio: audioAyahs[idx]?.audio || '',
-        surah: {
-          number: ayah.surah.number,
-          name: ayah.surah.name,
-          englishName: ayah.surah.englishName,
-          englishNameTranslation: ayah.surah.englishNameTranslation,
-          revelationType: ayah.surah.revelationType.toUpperCase(),
-          numberOfAyahs: ayah.surah.numberOfAyahs,
-        },
-      }));
 
       const startSurah = unified[0].surah.englishName;
       const endSurah = unified[unified.length - 1].surah.englishName;
@@ -90,11 +58,22 @@ export const useParah = () => {
 
       setAyahs(unified);
 
-      await AsyncStorage.setItem('quran_last_read', JSON.stringify({
+      const dataToStore = {
         number: unified[0].surah.number,
         name: unified[0].surah.englishName,
         ayah: unified[0].numberInSurah,
-      }));
+        totalAyahs: unified[0].surah.numberOfAyahs,
+      };
+
+      try {
+        if (user && token !== 'guest') {
+          const storageKey = `quran_last_read_${user._id}`;
+          await AsyncStorage.setItem(storageKey, JSON.stringify(dataToStore));
+        }
+        await AsyncStorage.setItem('quran_last_read', JSON.stringify(dataToStore));
+      } catch (e) {
+        console.error('Failed to save last read in UseParah:', e);
+      }
     } catch (err: any) {
       setErrorMsg(err.message || 'An error occurred while loading Para content.');
     } finally {
@@ -112,6 +91,10 @@ export const useParah = () => {
   }, [juzId, translationLang]);
 
   const playAyah = async (index: number) => {
+    if (index === currentAyahIndex) {
+      togglePlayPause();
+      return;
+    }
     await playGlobalAyah(index, ayahs, {
       type: 'juz',
       id: juzId,
@@ -145,6 +128,54 @@ export const useParah = () => {
     }, 100);
   };
 
+  const [bookmarks, setBookmarks] = useState<Bookmark[]>([]);
+
+  const loadBookmarks = async () => {
+    if (user && token !== 'guest') {
+      const storageKey = `quran_bookmarks_${user._id}`;
+      const stored = await AsyncStorage.getItem(storageKey);
+      if (stored) {
+        setBookmarks(JSON.parse(stored));
+      } else {
+        setBookmarks([]);
+      }
+    } else {
+      setBookmarks([]);
+    }
+  };
+
+  useEffect(() => {
+    loadBookmarks();
+  }, [user?._id, token]);
+
+  const isBookmarked = (ayah: UnifiedAyah) => {
+    return bookmarks.some(
+      (b) => b.surahNumber === ayah.surah?.number && b.numberInSurah === ayah.numberInSurah
+    );
+  };
+
+  const toggleBookmark = async (ayah: UnifiedAyah) => {
+    if (!user || token === 'guest') return;
+    const storageKey = `quran_bookmarks_${user._id}`;
+    let updated: Bookmark[] = [...bookmarks];
+    const isBooked = isBookmarked(ayah);
+    if (isBooked) {
+      updated = updated.filter(
+        (b) => !(b.surahNumber === ayah.surah?.number && b.numberInSurah === ayah.numberInSurah)
+      );
+    } else {
+      updated.push({
+        surahNumber: ayah.surah?.number || 1,
+        surahName: ayah.surah?.englishName || '',
+        numberInSurah: ayah.numberInSurah,
+        text: ayah.text,
+        translation: ayah.translation,
+      });
+    }
+    setBookmarks(updated);
+    await AsyncStorage.setItem(storageKey, JSON.stringify(updated));
+  };
+
   return {
     router,
     juzId,
@@ -165,5 +196,10 @@ export const useParah = () => {
     handlePrev,
     stopAudio,
     onScrollToIndexFailed,
+    user,
+    token,
+    bookmarks,
+    isBookmarked,
+    toggleBookmark,
   };
 };

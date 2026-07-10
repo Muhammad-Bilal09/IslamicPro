@@ -2,6 +2,8 @@ import { UnifiedAyah } from '@/types/type';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { setAudioModeAsync, useAudioPlayer, useAudioPlayerStatus } from 'expo-audio';
 import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
+import { useAuth } from './auth-context';
+import { useConnection } from './connection-context';
 
 export interface PlayingContext {
   type: 'surah' | 'juz' | null;
@@ -27,6 +29,8 @@ interface AudioContextType {
 const AudioContext = createContext<AudioContextType | undefined>(undefined);
 
 export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { user, token } = useAuth();
+  const { isOnline } = useConnection();
   const player = useAudioPlayer(null);
   const status = useAudioPlayerStatus(player);
   const isPlaying = status.playing;
@@ -60,6 +64,12 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   }, []);
 
   useEffect(() => {
+    if (!isOnline && currentAyahIndexRef.current !== null) {
+      stopAudio();
+    }
+  }, [isOnline]);
+
+  useEffect(() => {
     if (status.didJustFinish && autoAdvanceRef.current) {
       const currentIdx = currentAyahIndexRef.current;
       if (currentIdx !== null) {
@@ -79,6 +89,10 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const context = playingContextRef.current;
     if (index < 0 || index >= list.length) return;
 
+    if (!isOnline) {
+      return;
+    }
+
     const audioUrl = list[index].audio;
     if (!audioUrl) return;
 
@@ -87,19 +101,19 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     currentAyahIndexRef.current = index;
 
     try {
-      if (context.type === 'surah' && context.id) {
-        await AsyncStorage.setItem('quran_last_read', JSON.stringify({
-          number: context.id,
-          name: context.title,
-          ayah: list[index].numberInSurah,
-        }));
-      } else if (context.type === 'juz' && list[index].surah) {
-        await AsyncStorage.setItem('quran_last_read', JSON.stringify({
-          number: list[index].surah.number,
-          name: list[index].surah.englishName,
-          ayah: list[index].numberInSurah,
-        }));
+      const totalAyahsCount = list.length;
+      const dataToStore = {
+        number: context.type === 'surah' ? context.id : list[index].surah?.number,
+        name: context.type === 'surah' ? context.title : list[index].surah?.englishName,
+        ayah: list[index].numberInSurah,
+        totalAyahs: totalAyahsCount,
+      };
+
+      if (user && token !== 'guest') {
+        const storageKey = `quran_last_read_${user._id}`;
+        await AsyncStorage.setItem(storageKey, JSON.stringify(dataToStore));
       }
+      await AsyncStorage.setItem('quran_last_read', JSON.stringify(dataToStore));
 
       player.replace({ uri: audioUrl });
       setTimeout(() => {

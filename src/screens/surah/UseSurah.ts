@@ -1,16 +1,19 @@
 import { useEffect, useRef, useState } from 'react';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { FlatList } from 'react-native';
-import { SurahInfo, UnifiedAyah } from '@/types/type';
-import { quranApi } from '@/utils/api';
+import { SurahInfo, UnifiedAyah, Bookmark } from '@/types/type';
 import { useAudio } from '@/context/audio-context';
 import { useTranslation } from '@/context/translation-context';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useAuth } from '@/context/auth-context';
+import { getSurahAyahs } from '@/utils/quranDb';
 
 export const useSurah = () => {
   const router = useRouter();
   const { id } = useLocalSearchParams();
   const surahId = parseInt(Array.isArray(id) ? id[0] : id, 10);
   const { translationLang } = useTranslation();
+  const { user, token } = useAuth();
 
   const [surahInfo, setSurahInfo] = useState<SurahInfo | null>(null);
   const [ayahs, setAyahs] = useState<UnifiedAyah[]>([]);
@@ -40,38 +43,56 @@ export const useSurah = () => {
     setIsLoading(true);
     setErrorMsg(null);
     try {
-      const translationEdition = translationLang === 'ur' ? 'ur.jalandhry' : 'en.asad';
-      const response = await quranApi.get<{ code: number; data: any[] }>(
-        `/surah/${surahId}/editions/quran-simple,${translationEdition},ar.alafasy`
-      );
-      const json = response.data;
-      if (json.code !== 200 || !json.data || json.data.length < 3) {
-        throw new Error('Invalid response from Quran API.');
+      const unified = await getSurahAyahs(surahId, translationLang);
+      if (unified.length === 0) {
+        throw new Error('No verses found locally. Please ensure the Quran is downloaded.');
       }
 
+      const firstVerse = unified[0];
       const info: SurahInfo = {
-        number: json.data[0].number,
-        name: json.data[0].name,
-        englishName: json.data[0].englishName,
-        englishNameTranslation: json.data[0].englishNameTranslation,
-        revelationType: json.data[0].revelationType,
-        numberOfAyahs: json.data[0].numberOfAyahs,
+        number: firstVerse.surah.number,
+        name: firstVerse.surah.name,
+        englishName: firstVerse.surah.englishName,
+        englishNameTranslation: firstVerse.surah.englishNameTranslation,
+        revelationType: firstVerse.surah.revelationType,
+        numberOfAyahs: firstVerse.surah.numberOfAyahs,
       };
-
-      const arabicAyahs = json.data[0].ayahs;
-      const translationAyahs = json.data[1].ayahs;
-      const audioAyahs = json.data[2].ayahs;
-
-      const unified: UnifiedAyah[] = arabicAyahs.map((ayah: any, idx: number) => ({
-        number: ayah.number,
-        numberInSurah: ayah.numberInSurah,
-        text: ayah.text,
-        translation: translationAyahs[idx]?.text || '',
-        audio: audioAyahs[idx]?.audio || '',
-      }));
 
       setSurahInfo(info);
       setAyahs(unified);
+
+      // Save last read position when opening the Surah
+      const dataToStore = {
+        number: info.number,
+        name: info.englishName,
+        ayah: 1,
+        totalAyahs: info.numberOfAyahs,
+      };
+
+      try {
+        if (user && token !== 'guest') {
+          const storageKey = `quran_last_read_${user._id}`;
+          const existing = await AsyncStorage.getItem(storageKey);
+          if (existing) {
+            const parsed = JSON.parse(existing);
+            if (parsed.number === info.number) {
+              dataToStore.ayah = parsed.ayah || 1;
+            }
+          }
+          await AsyncStorage.setItem(storageKey, JSON.stringify(dataToStore));
+        } else {
+          const existing = await AsyncStorage.getItem('quran_last_read');
+          if (existing) {
+            const parsed = JSON.parse(existing);
+            if (parsed.number === info.number) {
+              dataToStore.ayah = parsed.ayah || 1;
+            }
+          }
+        }
+        await AsyncStorage.setItem('quran_last_read', JSON.stringify(dataToStore));
+      } catch (e) {
+        console.error('Failed to save last read in UseSurah:', e);
+      }
     } catch (err: any) {
       setErrorMsg(err.message || 'An error occurred while loading Surah content.');
     } finally {
@@ -85,6 +106,10 @@ export const useSurah = () => {
 
   const playAyah = async (index: number) => {
     if (!surahInfo) return;
+    if (index === currentAyahIndex) {
+      togglePlayPause();
+      return;
+    }
     await playGlobalAyah(index, ayahs, {
       type: 'surah',
       id: surahInfo.number,
@@ -118,6 +143,54 @@ export const useSurah = () => {
     }, 100);
   };
 
+  const [bookmarks, setBookmarks] = useState<Bookmark[]>([]);
+
+  const loadBookmarks = async () => {
+    if (user && token !== 'guest') {
+      const storageKey = `quran_bookmarks_${user._id}`;
+      const stored = await AsyncStorage.getItem(storageKey);
+      if (stored) {
+        setBookmarks(JSON.parse(stored));
+      } else {
+        setBookmarks([]);
+      }
+    } else {
+      setBookmarks([]);
+    }
+  };
+
+  useEffect(() => {
+    loadBookmarks();
+  }, [user?._id, token]);
+
+  const isBookmarked = (ayah: UnifiedAyah) => {
+    return bookmarks.some(
+      (b) => b.surahNumber === surahId && b.numberInSurah === ayah.numberInSurah
+    );
+  };
+
+  const toggleBookmark = async (ayah: UnifiedAyah) => {
+    if (!surahInfo || !user || token === 'guest') return;
+    const storageKey = `quran_bookmarks_${user._id}`;
+    let updated: Bookmark[] = [...bookmarks];
+    const isBooked = isBookmarked(ayah);
+    if (isBooked) {
+      updated = updated.filter(
+        (b) => !(b.surahNumber === surahId && b.numberInSurah === ayah.numberInSurah)
+      );
+    } else {
+      updated.push({
+        surahNumber: surahId,
+        surahName: surahInfo.englishName,
+        numberInSurah: ayah.numberInSurah,
+        text: ayah.text,
+        translation: ayah.translation,
+      });
+    }
+    setBookmarks(updated);
+    await AsyncStorage.setItem(storageKey, JSON.stringify(updated));
+  };
+
   return {
     router,
     surahId,
@@ -138,5 +211,10 @@ export const useSurah = () => {
     handlePrev,
     stopAudio,
     onScrollToIndexFailed,
+    user,
+    token,
+    bookmarks,
+    isBookmarked,
+    toggleBookmark,
   };
 };

@@ -3,7 +3,14 @@ import { useTheme } from './use-theme';
 
 
 
-export const useScreenData = () => {
+export interface LastReadProgress {
+  number: number;
+  name: string;
+  ayah: number;
+  totalAyahs?: number;
+}
+
+export const useScreenData = (lastRead?: LastReadProgress | null, isLoggedIn?: boolean) => {
   const theme = useTheme();
 
   const genderOptions = ['Male', 'Female', 'Other', 'Prefer not to say'] as const;
@@ -27,13 +34,19 @@ export const useScreenData = () => {
     },
   ];
 
+  const progressPercent = isLoggedIn && lastRead && lastRead.totalAyahs && lastRead.totalAyahs > 0
+    ? `${Math.round((lastRead.ayah / lastRead.totalAyahs) * 100)}%`
+    : '0%';
+
   const journeyItems: HomeJourneyItem[] = [
     {
       title: 'Reading Progress',
-      subtitle: 'Surah Al-Baqarah',
-      progressValue: '65%',
+      subtitle: isLoggedIn
+        ? (lastRead ? `${lastRead.name} (Ayah ${lastRead.ayah})` : 'No reading history yet')
+        : 'Login to track progress',
+      progressValue: isLoggedIn ? progressPercent : '0%',
       type: 'progress',
-      route: '/quran',
+      route: isLoggedIn && lastRead ? `/surah/${lastRead.number}` : '/quran',
     },
   ];
 

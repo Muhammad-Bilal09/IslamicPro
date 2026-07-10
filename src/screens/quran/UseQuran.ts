@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useWindowDimensions } from 'react-native';
-import { Para, Surah } from '@/types/type';
-import { quranApi } from '@/utils/api';
+import { Para, Surah, Bookmark } from '@/types/type';
+import { useAuth } from '@/context/auth-context';
+import { checkIfQuranDownloaded, downloadQuran, getSurahList } from '@/utils/quranDb';
 
 export const PARAS: Para[] = [
   { number: 1, name: 'Alif Lam Mim', arabicName: 'الم', startSurah: 1, startAyah: 1 },
@@ -47,6 +48,8 @@ export const useQuran = () => {
   const isWide = width >= 768;
   const numColumns = width >= 1024 ? 3 : width >= 768 ? 2 : 1;
   const paraColumns = width >= 768 ? 2 : 1;
+  const { user, token } = useAuth();
+  const isLoggedIn = !!user && token !== 'guest';
 
   const [surahs, setSurahs] = useState<Surah[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -59,25 +62,52 @@ export const useQuran = () => {
     ayah: number;
   } | null>(null);
 
-  const filterTabs = ['Para', 'All Surahs'];
+  const [bookmarks, setBookmarks] = useState<Bookmark[]>([]);
+  
+  // Download states for offline functionality
+  const [isDownloaded, setIsDownloaded] = useState(true);
+  const [isDownloading, setIsDownloading] = useState(false);
+  const [downloadProgress, setDownloadProgress] = useState(0);
+  const [downloadStatus, setDownloadStatus] = useState('');
+
+  const loadBookmarks = async () => {
+    if (user && token !== 'guest') {
+      const storageKey = `quran_bookmarks_${user._id}`;
+      const stored = await AsyncStorage.getItem(storageKey);
+      if (stored) {
+        setBookmarks(JSON.parse(stored));
+      } else {
+        setBookmarks([]);
+      }
+    } else {
+      setBookmarks([]);
+    }
+  };
+
+  const filterTabs = isLoggedIn ? ['Para', 'All Surahs', 'Bookmarks'] : ['Para', 'All Surahs'];
+
+  const checkDownloadStatus = async () => {
+    setIsLoading(true);
+    try {
+      await loadSurahs();
+      setIsDownloaded(true);
+    } catch (err: any) {
+      setErrorMsg(err.message || 'An error occurred while loading the Quran list.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const startDownload = async () => {
+    // No-op as Quran is pre-bundled and seeded offline
+  };
 
   const loadSurahs = async () => {
     setIsLoading(true);
     setErrorMsg(null);
     try {
-      const response = await quranApi.get<{ code: number; data: any[] }>('/surah');
-      const json = response.data;
-      if (json.code !== 200 || !json.data) {
-        throw new Error('API returned unsuccessful response.');
-      }
-      const mapped: Surah[] = json.data.map((item: any) => ({
-        number: item.number,
-        englishName: item.englishName,
-        arabicName: item.name,
-        ayahCount: item.numberOfAyahs,
-        englishNameTranslation: item.englishNameTranslation,
-      }));
-      setSurahs(mapped);
+      const list = await getSurahList();
+      setSurahs(list);
     } catch (err: any) {
       setErrorMsg(err.message || 'An error occurred while fetching the Quran list.');
     } finally {
@@ -93,7 +123,7 @@ export const useQuran = () => {
   };
 
   useEffect(() => {
-    loadSurahs();
+    checkDownloadStatus();
     loadLastRead();
   }, []);
 
@@ -101,6 +131,10 @@ export const useQuran = () => {
     const interval = setInterval(loadLastRead, 2000);
     return () => clearInterval(interval);
   }, []);
+
+  useEffect(() => {
+    loadBookmarks();
+  }, [user?._id, token, selectedTab]);
 
   const filteredSurahs = surahs.filter((surah) => {
     const q = searchQuery.toLowerCase();
@@ -132,5 +166,12 @@ export const useQuran = () => {
     filteredSurahs,
     getSurahName,
     loadSurahs,
+    bookmarks,
+    isLoggedIn,
+    isDownloaded,
+    isDownloading,
+    downloadProgress,
+    downloadStatus,
+    startDownload,
   };
 };

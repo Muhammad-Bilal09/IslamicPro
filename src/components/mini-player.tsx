@@ -1,7 +1,8 @@
 import { useAudio } from '@/context/audio-context';
 import { useTheme } from '@/hooks/use-theme';
+import { useConnection } from '@/context/connection-context';
 import { Ionicons } from '@expo/vector-icons';
-import { useGlobalSearchParams, usePathname } from 'expo-router';
+import { router, useGlobalSearchParams, usePathname } from 'expo-router';
 import { ActivityIndicator, Platform, Pressable, StyleSheet, View } from 'react-native';
 import Card from './card';
 import { ThemedText } from './themed-text';
@@ -20,7 +21,9 @@ export function MiniPlayer() {
     handleNext,
   } = useAudio();
 
-  if (currentAyahIndex === null || !playingContext.type) {
+  const { isOnline } = useConnection();
+
+  if (!isOnline || currentAyahIndex === null || !playingContext.type) {
     return null;
   }
 
@@ -40,6 +43,14 @@ export function MiniPlayer() {
   if (isCurrentlyOnActiveDetailScreen()) {
     return null;
   }
+
+  const handlePressPlayer = () => {
+    if (playingContext.type === 'surah' && playingContext.id) {
+      router.push(`/surah/${playingContext.id}`);
+    } else if (playingContext.type === 'juz' && playingContext.id) {
+      router.push(`/parah/${playingContext.id}`);
+    }
+  };
 
   const hasTabBar =
     pathname === '/' ||
@@ -67,23 +78,25 @@ export function MiniPlayer() {
       ]}
     >
       <View style={styles.contentRow}>
-        <View
-          style={[
-            styles.iconContainer,
-            { backgroundColor: theme.primaryLight },
-          ]}
-        >
-          <Ionicons name="musical-notes" size={18} color={theme.primary} />
-        </View>
+        <Pressable onPress={handlePressPlayer} style={styles.infoPressable}>
+          <View
+            style={[
+              styles.iconContainer,
+              { backgroundColor: theme.primaryLight },
+            ]}
+          >
+            <Ionicons name="musical-notes" size={18} color={theme.primary} />
+          </View>
 
-        <View style={styles.metaContainer}>
-          <ThemedText style={styles.titleText} numberOfLines={1}>
-            {playingContext.title}
-          </ThemedText>
-          <ThemedText style={styles.subtitleText} themeColor="textSecondary" numberOfLines={1}>
-            Ayah {currentAyahIndex + 1} • Qari Mishary Alafasy
-          </ThemedText>
-        </View>
+          <View style={styles.metaContainer}>
+            <ThemedText style={styles.titleText} numberOfLines={1}>
+              {playingContext.title}
+            </ThemedText>
+            <ThemedText style={styles.subtitleText} themeColor="textSecondary" numberOfLines={1}>
+              Ayah {currentAyahIndex + 1} • Qari Mishary Alafasy
+            </ThemedText>
+          </View>
+        </Pressable>
 
         <View style={styles.controlsContainer}>
           <Pressable
@@ -137,6 +150,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+  },
+  infoPressable: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginRight: 10,
   },
   iconContainer: {
     width: 36,

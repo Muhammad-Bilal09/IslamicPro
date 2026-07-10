@@ -1,8 +1,8 @@
 import { CalendarDayData, CurrentAndNextPrayer, PrayerData, PrayerTimings } from '@/types/type';
 import { aladhanApi } from '@/utils/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
-
+import { getPrayerTimesForDate } from './prayerCalc';
+import * as Location from 'expo-location';
 
 export function convert24hTo12h(time24: string): string {
   if (!time24) return '';
@@ -25,6 +25,183 @@ export function convert24hTo12h(time24: string): string {
   return `${hrStr}:${minStr} ${ampm}`;
 }
 
+export function calculatePrayerDataLocal(
+  date: Date,
+  lat: number,
+  lng: number,
+  method = 1,
+  school = 1,
+  city = 'Karachi',
+  country = 'Pakistan'
+): PrayerData {
+  const timings = getPrayerTimesForDate(date, lat, lng, method, school);
+  
+  // Format Gregorian date parts
+  const readable = date.toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' });
+  const weekday = date.toLocaleDateString('en-US', { weekday: 'long' });
+  const day = date.getDate().toString().padStart(2, '0');
+  const monthNum = date.getMonth() + 1;
+  const monthEn = date.toLocaleDateString('en-US', { month: 'long' });
+  const year = date.getFullYear().toString();
+
+  // Format Hijri date parts with Hermes native Intl
+  let hDay = '01';
+  let hMonthEn = 'Muharram';
+  let hYear = '1448';
+  try {
+    const formatter = new Intl.DateTimeFormat('en-US-u-ca-islamic-umalqura', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    });
+    const countryLower = (country || '').toLowerCase();
+    const cityLower = (city || '').toLowerCase();
+    const needsAdjustment =
+      countryLower.includes('pakistan') ||
+      countryLower.includes('india') ||
+      countryLower.includes('bangladesh') ||
+      cityLower.includes('karachi') ||
+      cityLower.includes('mumbai') ||
+      cityLower.includes('dhaka') ||
+      cityLower === 'karachi';
+
+    const targetDate = needsAdjustment ? new Date(date.getTime() - 24 * 60 * 60 * 1000) : date;
+    const parts = formatter.formatToParts(targetDate);
+    hDay = parts.find(p => p.type === 'day')?.value || '01';
+    hMonthEn = parts.find(p => p.type === 'month')?.value || 'Muharram';
+    hYear = parts.find(p => p.type === 'year')?.value || '1448';
+  } catch (_) {}
+
+  return {
+    timings,
+    date: {
+      readable,
+      hijri: {
+        day: hDay,
+        month: {
+          en: hMonthEn,
+          ar: '',
+        },
+        year: hYear,
+        designation: { abbreviated: 'AH' },
+      },
+      gregorian: {
+        weekday: { en: weekday },
+        day,
+        month: {
+          number: monthNum,
+          en: monthEn,
+        },
+        year,
+      } as any,
+    },
+    meta: {
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      method: { name: 'Local Calculation' },
+    },
+  } as PrayerData;
+}
+
+export async function cacheSingleDayTimings(
+  type: 'city' | 'gps',
+  city: string,
+  country: string,
+  useGps: boolean,
+  lat: number | undefined,
+  lng: number | undefined,
+  method: number,
+  school: number,
+  data: PrayerData
+) {
+  const d = new Date();
+  const year = d.getFullYear();
+  const month = d.getMonth() + 1;
+  const day = d.getDate();
+  const dayCacheKey = type === 'gps' && lat !== undefined && lng !== undefined
+    ? `prayer_day_gps_${year}_${month}_${day}_m${method}_s${school}`
+    : `prayer_day_city_${city.toLowerCase().trim()}_${country.toLowerCase().trim()}_${year}_${month}_m${method}_s${school}`;
+
+  try {
+    await AsyncStorage.setItem(dayCacheKey, JSON.stringify(data));
+  } catch (err) {
+    console.warn('Failed to cache single day timings:', err);
+  }
+}
+
+export async function getCachedSingleDayTimings(
+  type: 'city' | 'gps',
+  city: string,
+  country: string,
+  useGps: boolean,
+  lat: number | undefined,
+  lng: number | undefined,
+  method: number,
+  school: number
+): Promise<PrayerData | null> {
+  const d = new Date();
+  const year = d.getFullYear();
+  const month = d.getMonth() + 1;
+  const day = d.getDate();
+
+  // 1. Try single day cache first
+  const dayCacheKey = type === 'gps' && lat !== undefined && lng !== undefined
+    ? `prayer_day_gps_${year}_${month}_${day}_m${method}_s${school}`
+    : `prayer_day_city_${city.toLowerCase().trim()}_${country.toLowerCase().trim()}_${year}_${month}_${day}_m${method}_s${school}`;
+
+  try {
+    const cachedDay = await AsyncStorage.getItem(dayCacheKey);
+    if (cachedDay) {
+      return JSON.parse(cachedDay);
+    }
+  } catch (err) {
+    console.warn('Failed to read cached single day timings:', err);
+  }
+
+  // 2. Try monthly calendar cache next
+  const calCacheKey = type === 'gps' && lat !== undefined && lng !== undefined
+    ? `prayer_cal_gps_${year}_${month}_m${method}_s${school}`
+    : `prayer_cal_city_${city.toLowerCase().trim()}_${country.toLowerCase().trim()}_${year}_${month}_m${method}_s${school}`;
+
+  try {
+    const cachedCal = await AsyncStorage.getItem(calCacheKey);
+    if (cachedCal) {
+      const parsed = JSON.parse(cachedCal);
+      if (Array.isArray(parsed) && parsed.length >= day) {
+        const dayData = parsed[day - 1]; // CalendarDayData
+        if (dayData && dayData.timings) {
+          return {
+            timings: dayData.timings,
+            date: {
+              readable: dayData.date.readable,
+              hijri: {
+                day: dayData.date.hijri.day,
+                month: {
+                  en: dayData.date.hijri.month.en,
+                  ar: dayData.date.hijri.month.ar || '',
+                },
+                year: dayData.date.hijri.year,
+                designation: { abbreviated: 'AH' },
+              },
+              gregorian: {
+                weekday: { en: '' },
+                day: dayData.date.gregorian.day,
+                month: {
+                  number: dayData.date.gregorian.month.number,
+                  en: dayData.date.gregorian.month.en,
+                },
+                year: dayData.date.gregorian.year,
+              }
+            }
+          } as unknown as PrayerData;
+        }
+      }
+    }
+  } catch (err) {
+    console.warn('Failed to read monthly calendar cache for offline fallback:', err);
+  }
+
+  return null;
+}
 
 export async function fetchPrayerTimesByCity(
   city: string,
@@ -32,9 +209,34 @@ export async function fetchPrayerTimesByCity(
   method = 2,
   school = 0
 ): Promise<PrayerData> {
-  const todayStr = getTodayDateString();
+  let lat = 24.8607;
+  let lng = 67.0011;
 
-  const response = await aladhanApi.get<{ code: number; data: PrayerData }>(
+  try {
+    const results = await Location.geocodeAsync(`${city.trim()}, ${country.trim()}`);
+    if (results.length > 0) {
+      lat = results[0].latitude;
+      lng = results[0].longitude;
+      await AsyncStorage.multiSet([
+        ['prayer_lat', lat.toString()],
+        ['prayer_lng', lng.toString()],
+      ]);
+    }
+  } catch (err) {
+    console.warn('[prayerApi] Geocoding manual city failed (offline?), using cache:', err);
+    const cachedLat = await AsyncStorage.getItem('prayer_lat');
+    const cachedLng = await AsyncStorage.getItem('prayer_lng');
+    if (cachedLat && cachedLng) {
+      lat = parseFloat(cachedLat);
+      lng = parseFloat(cachedLng);
+    }
+  }
+
+  const localData = calculatePrayerDataLocal(new Date(), lat, lng, method, school, city, country);
+
+  // Background API call as an optional sync - do not block the offline calculation
+  const todayStr = getTodayDateString();
+  aladhanApi.get<{ code: number; data: PrayerData }>(
     `/timingsByCity/${todayStr}`,
     {
       params: {
@@ -44,16 +246,16 @@ export async function fetchPrayerTimesByCity(
         school,
       },
     }
-  );
+  ).then(async (response) => {
+    if (response.data?.code === 200 && response.data?.data) {
+      await cacheSingleDayTimings('city', city, country, false, undefined, undefined, method, school, response.data.data);
+    }
+  }).catch((err) => {
+    console.log('[prayerApi] Background API sync failed (offline?):', err.message);
+  });
 
-  const json = response.data;
-  if (json.code !== 200 || !json.data) {
-    throw new Error('Failed to fetch prayer times');
-  }
-
-  return json.data;
+  return localData;
 }
-
 
 export async function fetchPrayerTimesByCoords(
   latitude: number,
@@ -61,8 +263,11 @@ export async function fetchPrayerTimesByCoords(
   method = 2,
   school = 0
 ): Promise<PrayerData> {
+  const localData = calculatePrayerDataLocal(new Date(), latitude, longitude, method, school, 'Current Location', '');
+
+  // Background sync call
   const timestamp = Math.floor(Date.now() / 1000);
-  const response = await aladhanApi.get<{ code: number; data: PrayerData }>(
+  aladhanApi.get<{ code: number; data: PrayerData }>(
     `/timings/${timestamp}`,
     {
       params: {
@@ -72,14 +277,15 @@ export async function fetchPrayerTimesByCoords(
         school,
       },
     }
-  );
+  ).then(async (response) => {
+    if (response.data?.code === 200 && response.data?.data) {
+      await cacheSingleDayTimings('gps', '', '', true, latitude, longitude, method, school, response.data.data);
+    }
+  }).catch((err) => {
+    console.log('[prayerApi] Background GPS sync failed (offline?):', err.message);
+  });
 
-  const json = response.data;
-  if (json.code !== 200 || !json.data) {
-    throw new Error('Failed to fetch prayer times');
-  }
-
-  return json.data;
+  return localData;
 }
 
 

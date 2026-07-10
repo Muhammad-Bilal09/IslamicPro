@@ -71,10 +71,26 @@ export const useLocationSetup = () => {
 
     setIsSavingManual(true);
     try {
+      let lat: number | undefined;
+      let lng: number | undefined;
+
+      try {
+        const query = country.trim() ? `${city.trim()}, ${country.trim()}` : city.trim();
+        const results = await Location.geocodeAsync(query);
+        if (results.length > 0) {
+          lat = results[0].latitude;
+          lng = results[0].longitude;
+        }
+      } catch (geocodeErr) {
+        console.warn('[UseLocationSetup] Geocoding manual location failed:', geocodeErr);
+      }
+
       await updateLocation({
         city: city.trim(),
         country: country.trim() || 'Global',
         useGps: false,
+        lat,
+        lng,
       });
     } catch (err: any) {
       showAlert('Error', err.message || 'Failed to save location');

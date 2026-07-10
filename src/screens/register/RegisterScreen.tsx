@@ -29,11 +29,15 @@ export function RegisterScreen({ onGoToLogin }: RegisterScreenProps) {
     confirmPassword,
     setConfirmPassword,
     isLoading,
+    isGuestLoading,
     apiError,
     fieldErrors,
     setFieldErrors,
     handleRegister,
+    handleContinueAsGuest,
   } = useRegister({ onGoToLogin });
+
+  const isAnyLoading = isLoading || isGuestLoading;
 
   return (
     <KeyboardAvoidingView
@@ -83,7 +87,7 @@ export function RegisterScreen({ onGoToLogin }: RegisterScreenProps) {
             value={name}
             onChangeText={(t) => { setName(t); setFieldErrors((e) => ({ ...e, name: undefined })); }}
             autoCapitalize="words"
-            editable={!isLoading}
+            editable={!isAnyLoading}
             error={fieldErrors.name}
           />
 
@@ -96,7 +100,7 @@ export function RegisterScreen({ onGoToLogin }: RegisterScreenProps) {
             keyboardType="email-address"
             autoCapitalize="none"
             autoCorrect={false}
-            editable={!isLoading}
+            editable={!isAnyLoading}
             error={fieldErrors.email}
           />
 
@@ -108,7 +112,7 @@ export function RegisterScreen({ onGoToLogin }: RegisterScreenProps) {
             onChangeText={(t) => { setPassword(t); setFieldErrors((e) => ({ ...e, password: undefined })); }}
             isPassword
             autoCapitalize="none"
-            editable={!isLoading}
+            editable={!isAnyLoading}
             error={fieldErrors.password}
           />
 
@@ -120,17 +124,17 @@ export function RegisterScreen({ onGoToLogin }: RegisterScreenProps) {
             onChangeText={(t) => { setConfirmPassword(t); setFieldErrors((e) => ({ ...e, confirmPassword: undefined })); }}
             isPassword
             autoCapitalize="none"
-            editable={!isLoading}
+            editable={!isAnyLoading}
             error={fieldErrors.confirmPassword}
           />
 
           <Pressable
             style={({ pressed }) => [
               styles.submitBtn,
-              { backgroundColor: theme.primary, opacity: pressed || isLoading ? 0.82 : 1 },
+              { backgroundColor: theme.primary, opacity: pressed || isAnyLoading ? 0.82 : 1 },
             ]}
             onPress={handleRegister}
-            disabled={isLoading}
+            disabled={isAnyLoading}
           >
             {isLoading ? (
               <ActivityIndicator color="#fff" />
@@ -144,13 +148,36 @@ export function RegisterScreen({ onGoToLogin }: RegisterScreenProps) {
             )}
           </Pressable>
 
+          <Pressable
+            style={({ pressed }) => [
+              styles.guestBtn,
+              {
+                backgroundColor: theme.primaryLight,
+                opacity: pressed || isAnyLoading ? 0.82 : 1,
+              },
+            ]}
+            onPress={handleContinueAsGuest}
+            disabled={isAnyLoading}
+          >
+            {isGuestLoading ? (
+              <ActivityIndicator color={theme.primary} />
+            ) : (
+              <>
+                <Ionicons name="person-outline" size={20} color={theme.primary} />
+                <ThemedText style={[styles.guestBtnText, { color: theme.primary }]}>
+                  Continue as Guest
+                </ThemedText>
+              </>
+            )}
+          </Pressable>
+
           <View style={[styles.divider, { borderColor: theme.border }]} />
 
           <View style={styles.switchRow}>
             <ThemedText style={styles.switchLabel} themeColor="textSecondary">
               Already have an account?
             </ThemedText>
-            <Pressable onPress={onGoToLogin} disabled={isLoading} hitSlop={8}>
+            <Pressable onPress={onGoToLogin} disabled={isAnyLoading} hitSlop={8}>
               <ThemedText style={[styles.switchLink, { color: theme.primary }]}>
                 Sign In
               </ThemedText>

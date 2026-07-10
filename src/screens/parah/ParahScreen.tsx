@@ -14,11 +14,13 @@ import { useTheme } from '@/hooks/use-theme';
 import { UnifiedAyah } from '@/types/type';
 
 import { useTranslation } from '@/context/translation-context';
+import { useConnection } from '@/context/connection-context';
 import { styles } from './ParahStyle';
 import { useParah } from './UseParah';
 
 export function ParahScreen() {
   const theme = useTheme();
+  const { isOnline } = useConnection();
   const { translationLang, toggleTranslation } = useTranslation();
   const {
     router,
@@ -40,6 +42,10 @@ export function ParahScreen() {
     handlePrev,
     stopAudio,
     onScrollToIndexFailed,
+    user,
+    token,
+    isBookmarked,
+    toggleBookmark,
   } = useParah();
 
   const renderAyahItem = ({ item, index }: { item: UnifiedAyah; index: number }) => {
@@ -116,19 +122,40 @@ export function ParahScreen() {
               <ThemedText style={styles.surahNameTag} themeColor="textSecondary">
                 {item.surah.englishName}
               </ThemedText>
-              <Pressable
-                style={[
-                  styles.playButtonCircle,
-                  { backgroundColor: isActive && isPlaying ? theme.accent : theme.primary },
-                ]}
-                onPress={() => playAyah(index)}
-              >
-                {isActive && isLoadingAudio ? (
-                  <ActivityIndicator size="small" color="#FFFFFF" />
-                ) : (
-                  <Ionicons name={isActive && isPlaying ? 'pause' : 'play'} size={14} color="#FFFFFF" />
-                )}
-              </Pressable>
+              {isOnline && (
+                <Pressable
+                  style={[
+                    styles.playButtonCircle,
+                    { backgroundColor: isActive && isPlaying ? theme.accent : theme.primary },
+                  ]}
+                  onPress={() => playAyah(index)}
+                >
+                  {isActive && isLoadingAudio ? (
+                    <ActivityIndicator size="small" color="#FFFFFF" />
+                  ) : (
+                    <Ionicons name={isActive && isPlaying ? 'pause' : 'play'} size={14} color="#FFFFFF" />
+                  )}
+                </Pressable>
+              )}
+
+              {user && token !== 'guest' && (
+                <Pressable
+                  style={[
+                    styles.bookmarkButtonCircle,
+                    {
+                      borderColor: theme.border,
+                      backgroundColor: theme.cardBackground,
+                    },
+                  ]}
+                  onPress={() => toggleBookmark(item)}
+                >
+                  <Ionicons
+                    name={isBookmarked(item) ? 'bookmark' : 'bookmark-outline'}
+                    size={14}
+                    color={isBookmarked(item) ? theme.primary : theme.textSecondary}
+                  />
+                </Pressable>
+              )}
             </View>
           </View>
 
@@ -201,7 +228,7 @@ export function ParahScreen() {
             onScrollToIndexFailed={onScrollToIndexFailed}
           />
 
-          {currentAyahIndex !== null && (
+          {currentAyahIndex !== null && isOnline && (
             <Card
               style={[
                 styles.playerPanel,

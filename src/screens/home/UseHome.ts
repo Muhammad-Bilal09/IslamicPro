@@ -10,6 +10,8 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
+import { useAuth } from '@/context/auth-context';
+import { checkIfQuranDownloaded, getRandomAyah } from '@/utils/quranDb';
 
 export interface DailyAyah {
   text: string;
@@ -70,6 +72,33 @@ export function getTimeUntilRamadan(): TimeRemaining {
 
 export const useHome = () => {
   const { translationLang } = useTranslation();
+  const { user, token } = useAuth();
+  const isLoggedIn = !!user && token !== 'guest';
+  const [lastRead, setLastRead] = useState<{
+    number: number;
+    name: string;
+    ayah: number;
+    totalAyahs?: number;
+  } | null>(null);
+
+  const loadLastRead = async () => {
+    try {
+      if (isLoggedIn && user) {
+        const storageKey = `quran_last_read_${user._id}`;
+        const stored = await AsyncStorage.getItem(storageKey);
+        if (stored) {
+          setLastRead(JSON.parse(stored));
+        } else {
+          setLastRead(null);
+        }
+      } else {
+        setLastRead(null);
+      }
+    } catch (err) {
+      console.error('Error loading last read in Home hook:', err);
+    }
+  };
+
   const [city, setCity] = useState('Karachi');
   const [country, setCountry] = useState('Pakistan');
   const [method, setMethod] = useState(1);
@@ -188,27 +217,34 @@ export const useHome = () => {
         }
       }
 
-      const randomIdx = Math.floor(Math.random() * 6236) + 1;
-      const translationEdition = translationLang === 'ur' ? 'ur.jalandhry' : 'en.asad';
-      const res = await quranApi.get(`/ayah/${randomIdx}/editions/quran-simple,${translationEdition}`);
-      const data = res.data;
-
-      if (data.code === 200 && Array.isArray(data.data) && data.data.length >= 2) {
-        const arabic = data.data[0];
-        const translation = data.data[1];
-        const newAyah: DailyAyah = {
-          text: arabic.text,
-          translation: translation.text,
-          surahName: arabic.surah.englishName,
-          surahNumber: arabic.surah.number,
-          numberInSurah: arabic.numberInSurah,
-          date: todayStr,
-          lang: translationLang,
-        };
-        await AsyncStorage.setItem('daily_ayah', JSON.stringify(newAyah));
-        setDailyAyahData(newAyah);
+      const downloaded = await checkIfQuranDownloaded();
+      if (downloaded) {
+        const localAyah = await getRandomAyah(translationLang);
+        await AsyncStorage.setItem('daily_ayah', JSON.stringify(localAyah));
+        setDailyAyahData(localAyah);
       } else {
-        throw new Error('Invalid response from Quran API.');
+        const randomIdx = Math.floor(Math.random() * 6236) + 1;
+        const translationEdition = translationLang === 'ur' ? 'ur.jalandhry' : 'en.asad';
+        const res = await quranApi.get(`/ayah/${randomIdx}/editions/quran-simple,${translationEdition}`);
+        const data = res.data;
+
+        if (data.code === 200 && Array.isArray(data.data) && data.data.length >= 2) {
+          const arabic = data.data[0];
+          const translation = data.data[1];
+          const newAyah: DailyAyah = {
+            text: arabic.text,
+            translation: translation.text,
+            surahName: arabic.surah.englishName,
+            surahNumber: arabic.surah.number,
+            numberInSurah: arabic.numberInSurah,
+            date: todayStr,
+            lang: translationLang,
+          };
+          await AsyncStorage.setItem('daily_ayah', JSON.stringify(newAyah));
+          setDailyAyahData(newAyah);
+        } else {
+          throw new Error('Invalid response from Quran API.');
+        }
       }
     } catch (err) {
       console.error('HomeScreen Error loading daily ayah:', err);
@@ -231,7 +267,8 @@ export const useHome = () => {
     useCallback(() => {
       loadSettingsAndTimings();
       loadDailyAyah();
-    }, [translationLang])
+      loadLastRead();
+    }, [translationLang, isLoggedIn, user?._id])
   );
 
   useEffect(() => {
@@ -276,5 +313,7 @@ export const useHome = () => {
     isDailyAyahEnabled,
     ramadanCountdown,
     hijriDate,
+    lastRead,
+    isLoggedIn,
   };
 };

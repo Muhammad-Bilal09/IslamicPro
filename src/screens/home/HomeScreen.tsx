@@ -41,8 +41,10 @@ export function HomeScreen() {
     isDailyAyahEnabled,
     ramadanCountdown,
     hijriDate,
+    lastRead,
+    isLoggedIn,
   } = useHome();
-  const { getRamadanCountdownItems, quickActions, journeyItems } = useScreenData();
+  const { getRamadanCountdownItems, quickActions, journeyItems } = useScreenData(lastRead, isLoggedIn);
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]} edges={['top']}>

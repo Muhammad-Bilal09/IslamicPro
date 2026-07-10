@@ -32,6 +32,7 @@
         "android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK",
         "android.permission.POST_NOTIFICATIONS",
         "android.permission.SCHEDULE_EXACT_ALARM",
+        "android.permission.USE_EXACT_ALARM",
         "android.permission.RECEIVE_BOOT_COMPLETED"
       ],
       "blockedPermissions": [
@@ -55,7 +56,8 @@
         {
           "image": "./assets/images/icon.png",
           "resizeMode": "contain",
-          "backgroundColor": "#FCFAF6"
+          "backgroundColor": "#FCFAF6",
+          "imageWidth": 240
         }
       ],
       [
@@ -67,7 +69,8 @@
         }
       ],
       "expo-audio",
-      "expo-asset"
+      "expo-asset",
+      "expo-sqlite"
     ],
     "experiments": {
       "typedRoutes": true,
@@ -76,7 +79,7 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "ab1404bc-c692-4edf-b8fc-c2fcfe58db91"
+        "projectId": "3d99af30-c542-4090-9af8-20bb087c6df9"
       }
     }
   }

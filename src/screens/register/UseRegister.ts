@@ -4,7 +4,7 @@ import { useAlert } from '@/context/alert-context';
 import { RegisterScreenProps } from '@/types/type';
 
 export const useRegister = ({ onGoToLogin }: RegisterScreenProps) => {
-  const { register } = useAuth();
+  const { register, continueAsGuest } = useAuth();
   const { showAlert } = useAlert();
 
   const [name, setName] = useState('');
@@ -13,6 +13,7 @@ export const useRegister = ({ onGoToLogin }: RegisterScreenProps) => {
   const [confirmPassword, setConfirmPassword] = useState('');
 
   const [isLoading, setIsLoading] = useState(false);
+  const [isGuestLoading, setIsGuestLoading] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<{
     name?: string;
@@ -56,6 +57,18 @@ export const useRegister = ({ onGoToLogin }: RegisterScreenProps) => {
     }
   };
 
+  const handleContinueAsGuest = async () => {
+    setApiError(null);
+    setIsGuestLoading(true);
+    try {
+      await continueAsGuest();
+    } catch (err: any) {
+      setApiError(err.message || 'Failed to continue as guest.');
+    } finally {
+      setIsGuestLoading(false);
+    }
+  };
+
   return {
     name,
     setName,
@@ -66,10 +79,12 @@ export const useRegister = ({ onGoToLogin }: RegisterScreenProps) => {
     confirmPassword,
     setConfirmPassword,
     isLoading,
+    isGuestLoading,
     apiError,
     setApiError,
     fieldErrors,
     setFieldErrors,
     handleRegister,
+    handleContinueAsGuest,
   };
 };
