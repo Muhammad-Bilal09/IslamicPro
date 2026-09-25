@@ -12,7 +12,7 @@ const ConnectionContext = createContext<ConnectionContextType>({
 });
 
 const PING_URL = 'https://clients3.google.com/generate_204';
-const PING_INTERVAL = 10000; // Check every 10 seconds
+const PING_INTERVAL = 10000; 
 
 export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isOnline, setIsOnline] = useState<boolean>(true);
@@ -39,13 +39,10 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   };
 
   useEffect(() => {
-    // Initial check
     checkConnection();
 
-    // Periodic check
     const interval = setInterval(checkConnection, PING_INTERVAL);
 
-    // Check on app state active
     const handleAppStateChange = (nextAppState: AppStateStatus) => {
       if (nextAppState === 'active') {
         checkConnection();

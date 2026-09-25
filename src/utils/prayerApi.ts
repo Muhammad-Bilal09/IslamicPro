@@ -1,8 +1,8 @@
 import { CalendarDayData, CurrentAndNextPrayer, PrayerData, PrayerTimings } from '@/types/type';
 import { aladhanApi } from '@/utils/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { getPrayerTimesForDate } from './prayerCalc';
 import * as Location from 'expo-location';
+import { getPrayerTimesForDate } from './prayerCalc';
 
 export function convert24hTo12h(time24: string): string {
   if (!time24) return '';
@@ -35,8 +35,7 @@ export function calculatePrayerDataLocal(
   country = 'Pakistan'
 ): PrayerData {
   const timings = getPrayerTimesForDate(date, lat, lng, method, school);
-  
-  // Format Gregorian date parts
+
   const readable = date.toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' });
   const weekday = date.toLocaleDateString('en-US', { weekday: 'long' });
   const day = date.getDate().toString().padStart(2, '0');
@@ -44,7 +43,6 @@ export function calculatePrayerDataLocal(
   const monthEn = date.toLocaleDateString('en-US', { month: 'long' });
   const year = date.getFullYear().toString();
 
-  // Format Hijri date parts with Hermes native Intl
   let hDay = '01';
   let hMonthEn = 'Muharram';
   let hYear = '1448';
@@ -70,7 +68,7 @@ export function calculatePrayerDataLocal(
     hDay = parts.find(p => p.type === 'day')?.value || '01';
     hMonthEn = parts.find(p => p.type === 'month')?.value || 'Muharram';
     hYear = parts.find(p => p.type === 'year')?.value || '1448';
-  } catch (_) {}
+  } catch (_) { }
 
   return {
     timings,
@@ -143,7 +141,6 @@ export async function getCachedSingleDayTimings(
   const month = d.getMonth() + 1;
   const day = d.getDate();
 
-  // 1. Try single day cache first
   const dayCacheKey = type === 'gps' && lat !== undefined && lng !== undefined
     ? `prayer_day_gps_${year}_${month}_${day}_m${method}_s${school}`
     : `prayer_day_city_${city.toLowerCase().trim()}_${country.toLowerCase().trim()}_${year}_${month}_${day}_m${method}_s${school}`;
@@ -157,7 +154,6 @@ export async function getCachedSingleDayTimings(
     console.warn('Failed to read cached single day timings:', err);
   }
 
-  // 2. Try monthly calendar cache next
   const calCacheKey = type === 'gps' && lat !== undefined && lng !== undefined
     ? `prayer_cal_gps_${year}_${month}_m${method}_s${school}`
     : `prayer_cal_city_${city.toLowerCase().trim()}_${country.toLowerCase().trim()}_${year}_${month}_m${method}_s${school}`;
@@ -167,7 +163,7 @@ export async function getCachedSingleDayTimings(
     if (cachedCal) {
       const parsed = JSON.parse(cachedCal);
       if (Array.isArray(parsed) && parsed.length >= day) {
-        const dayData = parsed[day - 1]; // CalendarDayData
+        const dayData = parsed[day - 1];
         if (dayData && dayData.timings) {
           return {
             timings: dayData.timings,
@@ -234,7 +230,6 @@ export async function fetchPrayerTimesByCity(
 
   const localData = calculatePrayerDataLocal(new Date(), lat, lng, method, school, city, country);
 
-  // Background API call as an optional sync - do not block the offline calculation
   const todayStr = getTodayDateString();
   aladhanApi.get<{ code: number; data: PrayerData }>(
     `/timingsByCity/${todayStr}`,
@@ -265,7 +260,6 @@ export async function fetchPrayerTimesByCoords(
 ): Promise<PrayerData> {
   const localData = calculatePrayerDataLocal(new Date(), latitude, longitude, method, school, 'Current Location', '');
 
-  // Background sync call
   const timestamp = Math.floor(Date.now() / 1000);
   aladhanApi.get<{ code: number; data: PrayerData }>(
     `/timings/${timestamp}`,

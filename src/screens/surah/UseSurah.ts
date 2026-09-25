@@ -27,6 +27,8 @@ export const useSurah = () => {
     playingContext,
     autoAdvance,
     setAutoAdvance,
+    repeatMode,
+    toggleRepeatMode,
     playAyah: playGlobalAyah,
     togglePlayPause,
     stopAudio,
@@ -40,7 +42,6 @@ export const useSurah = () => {
   const flatListRef = useRef<FlatList<UnifiedAyah> | null>(null);
 
   const fetchSurahData = async () => {
-    setIsLoading(true);
     setErrorMsg(null);
     try {
       const unified = await getSurahAyahs(surahId, translationLang);
@@ -60,8 +61,8 @@ export const useSurah = () => {
 
       setSurahInfo(info);
       setAyahs(unified);
+      setIsLoading(false);
 
-      // Save last read position when opening the Surah
       const dataToStore = {
         number: info.number,
         name: info.englishName,
@@ -95,7 +96,6 @@ export const useSurah = () => {
       }
     } catch (err: any) {
       setErrorMsg(err.message || 'An error occurred while loading Surah content.');
-    } finally {
       setIsLoading(false);
     }
   };
@@ -202,6 +202,8 @@ export const useSurah = () => {
     isLoadingAudio,
     autoAdvance,
     setAutoAdvance,
+    repeatMode,
+    toggleRepeatMode,
     isPlaying,
     flatListRef,
     fetchSurahData,

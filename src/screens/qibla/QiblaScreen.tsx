@@ -212,7 +212,6 @@ export function QiblaScreen() {
             <ThemedText style={styles.outlineBtnText}>Recalibrate GPS</ThemedText>
           </Pressable>
         </View>
-        <View style={{ height: 100 }} />
       </ScrollView>
     </SafeAreaView>
   );

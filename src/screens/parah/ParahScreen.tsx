@@ -15,11 +15,14 @@ import { UnifiedAyah } from '@/types/type';
 
 import { useTranslation } from '@/context/translation-context';
 import { useConnection } from '@/context/connection-context';
+import { sanitizeArabicText } from '@/utils/quranDb';
+import { useArabicFont } from '@/utils/fontHelper';
 import { styles } from './ParahStyle';
 import { useParah } from './UseParah';
 
 export function ParahScreen() {
   const theme = useTheme();
+  const arabicFont = useArabicFont();
   const { isOnline } = useConnection();
   const { translationLang, toggleTranslation } = useTranslation();
   const {
@@ -33,6 +36,8 @@ export function ParahScreen() {
     isLoadingAudio,
     autoAdvance,
     setAutoAdvance,
+    repeatMode,
+    toggleRepeatMode,
     isPlaying,
     flatListRef,
     fetchJuzData,
@@ -87,8 +92,8 @@ export function ParahScreen() {
 
             {item.surah.number !== 9 && (item.surah.number !== 1 || item.numberInSurah !== 1) && item.numberInSurah === 1 && (
               <Card variant="outlined" style={styles.bismillahCard}>
-                <ThemedText style={styles.bismillahText}>
-                  بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ
+                <ThemedText style={[styles.bismillahText, { fontFamily: arabicFont }]}>
+                  بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ
                 </ThemedText>
               </Card>
             )}
@@ -159,8 +164,16 @@ export function ParahScreen() {
             </View>
           </View>
 
-          <ThemedText style={styles.arabicText}>{item.text}</ThemedText>
-          <ThemedText style={styles.translationText} themeColor="textSecondary">
+          <ThemedText style={[styles.arabicText, { fontFamily: arabicFont }]}>
+            {sanitizeArabicText(item.text)}
+          </ThemedText>
+          <ThemedText
+            style={[
+              styles.translationText,
+              translationLang === 'ur' && styles.urduTranslationText,
+            ]}
+            themeColor="textSecondary"
+          >
             {item.translation}
           </ThemedText>
         </Card>
@@ -260,14 +273,17 @@ export function ParahScreen() {
 
               <View style={styles.playerControlsRow}>
                 <Pressable
-                  style={[styles.utilityBtn, { backgroundColor: autoAdvance ? theme.primaryLight : 'transparent' }]}
-                  onPress={() => setAutoAdvance(!autoAdvance)}
+                  style={[styles.utilityBtn, { backgroundColor: repeatMode !== 'off' ? theme.primaryLight : 'transparent' }]}
+                  onPress={toggleRepeatMode}
                 >
                   <Ionicons
                     name="repeat"
                     size={20}
-                    color={autoAdvance ? theme.primary : theme.textSecondary}
+                    color={repeatMode !== 'off' ? theme.primary : theme.textSecondary}
                   />
+                  {repeatMode === 'ayah' && (
+                    <ThemedText style={{ position: 'absolute', fontSize: 9, fontWeight: '900', color: theme.primary, bottom: 2 }}>1</ThemedText>
+                  )}
                 </Pressable>
 
                 <Pressable

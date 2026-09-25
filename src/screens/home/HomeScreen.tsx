@@ -1,7 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { useState } from 'react';
-import { ActivityIndicator, Image, Pressable, ScrollView, View } from 'react-native';
+import { ActivityIndicator, Image, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import Badge from '@/components/badge';
@@ -14,19 +13,13 @@ import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { useScreenData } from '@/hooks/UseScreenData';
+import { useArabicFont } from '@/utils/fontHelper';
 import { styles } from './HomeStyle';
 import { useHome } from './UseHome';
 
 export function HomeScreen() {
   const theme = useTheme();
-  const [cardHeight, setCardHeight] = useState(0);
-  const [cardWidth, setCardWidth] = useState(0);
-
-  const imageHeight = cardHeight ? cardHeight * 2.45 : 0;
-  const imageWidth = imageHeight;
-  const finalWidth = cardWidth && imageWidth < cardWidth ? cardWidth : imageWidth;
-  const finalHeight = finalWidth;
-  const finalTop = cardHeight ? - (finalHeight - cardHeight) / 2 : 0;
+  const arabicFont = useArabicFont();
   const {
     city,
     isLoading,
@@ -63,11 +56,6 @@ export function HomeScreen() {
         </View>
 
         <Card
-          onLayout={(e) => {
-            const { width, height } = e.nativeEvent.layout;
-            setCardWidth(width);
-            setCardHeight(height);
-          }}
           style={{
             marginTop: Spacing.one,
             marginBottom: Spacing.one,
@@ -79,31 +67,21 @@ export function HomeScreen() {
             position: 'relative',
           }}
         >
-          {cardHeight > 0 && cardWidth > 0 && (
-            <>
-              <Image
-                source={require('../../../assets/images/ramadan_bg.png')}
-                style={{
-                  position: 'absolute',
-                  top: finalTop,
-                  right: 0,
-                  width: finalWidth,
-                  height: finalHeight,
-                }}
-                resizeMode="contain"
-              />
-              <View
-                style={{
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                  backgroundColor: 'rgba(0, 0, 0, 0.3)',
-                }}
-              />
-            </>
-          )}
+          <Image
+            source={require('../../../assets/images/ramadan_bg.png')}
+            style={[StyleSheet.absoluteFill, { opacity: 0.25 }]}
+            resizeMode="cover"
+          />
+          <View
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: 'rgba(0, 0, 0, 0.2)',
+            }}
+          />
           <View style={{ gap: Spacing.three }}>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.two }}>
@@ -241,7 +219,7 @@ export function HomeScreen() {
               <ActivityIndicator size="small" color={theme.primary} style={{ marginVertical: Spacing.four }} />
             ) : (
               <>
-                <ThemedText style={styles.arabicText}>
+                <ThemedText style={[styles.arabicText, { fontFamily: arabicFont }]}>
                   {dailyAyahData.text}
                 </ThemedText>
 

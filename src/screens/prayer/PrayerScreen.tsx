@@ -18,12 +18,14 @@ import { Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { useScreenData } from '@/hooks/UseScreenData';
 import { convert24hTo12h } from '@/utils/prayerApi';
+import { useArabicFont } from '@/utils/fontHelper';
 
 import { styles } from './PrayerStyle';
 import { formatCountdown, usePrayer } from './UsePrayer';
 
 export function PrayerScreen() {
   const theme = useTheme();
+  const arabicFont = useArabicFont();
   const {
     city,
     country,
@@ -269,8 +271,8 @@ export function PrayerScreen() {
                       fontWeight: 'bold',
                       textAlign: 'center',
                       marginVertical: Spacing.two,
-                      lineHeight: 38,
-                      fontFamily: 'serif',
+                      lineHeight: 44,
+                      fontFamily: arabicFont,
                       color: theme.textOnPrimary,
                     }}
                     themeColor="textOnPrimary"
@@ -293,7 +295,6 @@ export function PrayerScreen() {
           </Pressable>
         )}
 
-        <View style={styles.bottomSpacer} />
       </ScrollView>
     </SafeAreaView>
   );

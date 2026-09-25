@@ -13,6 +13,8 @@ export interface SurahListItemProps {
   onPress?: () => void;
 }
 
+import { useArabicFont } from '@/utils/fontHelper';
+
 export function SurahListItem({
   number,
   englishName,
@@ -21,6 +23,7 @@ export function SurahListItem({
   onPress,
 }: SurahListItemProps) {
   const theme = useTheme();
+  const arabicFont = useArabicFont();
 
   return (
     <Pressable onPress={onPress}>
@@ -38,7 +41,7 @@ export function SurahListItem({
         </View>
 
         <View style={styles.rightSection}>
-          <Text style={[styles.arabicName, { color: theme.primary }]}>{arabicName}</Text>
+          <Text style={[styles.arabicName, { color: theme.primary, fontFamily: arabicFont }]}>{arabicName}</Text>
           <Ionicons name="chevron-forward" size={16} color={theme.textSecondary} />
         </View>
       </Card>

@@ -1,18 +1,12 @@
-import { CalculationMethod, Coordinates, Madhab, PrayerTimes } from 'adhan';
 import { PrayerTimings } from '@/types/type';
+import { CalculationMethod, Coordinates, Madhab, PrayerTimes } from 'adhan';
 
-/**
- * Formats a Date object into "HH:mm" local time string.
- */
+
 export function formatTime(date: Date): string {
   const hours = date.getHours().toString().padStart(2, '0');
   const minutes = date.getMinutes().toString().padStart(2, '0');
   return `${hours}:${minutes}`;
 }
-
-/**
- * Map API method ID to adhan library calculation method parameters.
- */
 export function getAdhanParameters(methodId: number) {
   switch (methodId) {
     case 1:
@@ -36,9 +30,7 @@ export function getAdhanParameters(methodId: number) {
   }
 }
 
-/**
- * Calculates prayer times for a given date, coordinates, method, and school.
- */
+
 export function getPrayerTimesForDate(
   date: Date,
   latitude: number,
@@ -46,6 +38,9 @@ export function getPrayerTimesForDate(
   methodId = 1,
   schoolId = 1
 ): PrayerTimings {
+  const cleanDate = new Date(date);
+  cleanDate.setHours(0, 0, 0, 0);
+
   const coords = new Coordinates(latitude, longitude);
   const params = getAdhanParameters(methodId);
 
@@ -55,7 +50,7 @@ export function getPrayerTimesForDate(
     params.madhab = Madhab.Shafi;
   }
 
-  const pTimes = new PrayerTimes(coords, date, params);
+  const pTimes = new PrayerTimes(coords, cleanDate, params);
 
   return {
     Fajr: formatTime(pTimes.fajr),
@@ -67,9 +62,6 @@ export function getPrayerTimesForDate(
   };
 }
 
-/**
- * Calculates local Hijri date for a given Gregorian date, with location adjustments.
- */
 export function getHijriDateLocal(date: Date, country?: string, city?: string): string {
   try {
     const formatter = new Intl.DateTimeFormat('en-US-u-ca-islamic-umalqura', {
@@ -98,7 +90,6 @@ export function getHijriDateLocal(date: Date, country?: string, city?: string): 
       cityLower === 'karachi';
 
     if (needsAdjustment) {
-      // Subtract 1 day for sub-continent region where the moon is typically sighted a day later
       const adjustedDate = new Date(date.getTime() - 24 * 60 * 60 * 1000);
       return formatParts(adjustedDate);
     }
@@ -106,7 +97,6 @@ export function getHijriDateLocal(date: Date, country?: string, city?: string): 
     return formatParts(date);
   } catch (err) {
     console.warn('Native Hijri date calculation error, using fallback:', err);
-    // Safe hardcoded fallback or basic calculation
     return '18 Muharram 1448 AH';
   }
 }

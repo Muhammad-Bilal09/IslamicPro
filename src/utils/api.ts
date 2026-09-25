@@ -1,7 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 
-// const BASE_URL = "http://192.168.0.180:5000/api";
+// const BASE_URL = "http://192.168.0.62:5000/api";
 const BASE_URL = "https://islamic-pro-server.vercel.app/api";
 
 export const apiClient = axios.create({
@@ -9,6 +9,9 @@ export const apiClient = axios.create({
   timeout: 10000,
   headers: {
     "Content-Type": "application/json",
+    "Cache-Control": "no-cache, no-store, must-revalidate",
+    "Pragma": "no-cache",
+    "Expires": "0",
   },
 });
 
@@ -44,8 +47,10 @@ apiClient.interceptors.response.use(
   },
 );
 
+export const QURAN_FOUNDATION_BASE_URL = "https://api.quran.com/api/v4";
+
 export const quranApi = axios.create({
-  baseURL: "https://api.alquran.cloud/v1",
+  baseURL: QURAN_FOUNDATION_BASE_URL,
   timeout: 15_000,
   headers: {
     Accept: "application/json",
@@ -57,9 +62,9 @@ quranApi.interceptors.response.use(
   (error) => {
     const errorMsg =
       error.response?.data?.message ||
-      "Failed to connect to the Quran service. Please check your internet connection.";
+      "Failed to connect to Quran.com API. Please check your internet connection.";
     return Promise.reject(new Error(errorMsg));
-  },
+  }
 );
 
 export const aladhanApi = axios.create({

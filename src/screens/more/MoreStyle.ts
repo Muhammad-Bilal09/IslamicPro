@@ -9,7 +9,6 @@ export const styles = StyleSheet.create({
     paddingHorizontal: Spacing.four,
     paddingVertical: Spacing.four,
     flexGrow: 1,
-    justifyContent: 'center',
   },
   tasbihCard: {
     padding: Spacing.five,

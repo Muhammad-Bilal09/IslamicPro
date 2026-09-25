@@ -1,4 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
+import { router } from 'expo-router';
 import { Pressable, ScrollView, View, useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -156,6 +157,45 @@ export function MoreScreen() {
             </Pressable>
           </View>
         </Card>
+
+        <Pressable onPress={() => router.push('/zakat' as any)}>
+          <Card
+            variant="outlined"
+            style={{
+              backgroundColor: theme.cardBackground,
+              borderColor: theme.border,
+              padding: cardPadding,
+              marginBottom: 16,
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+            }}
+          >
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
+              <View
+                style={{
+                  width: 44,
+                  height: 44,
+                  borderRadius: 22,
+                  backgroundColor: '#F5F3FF',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <Ionicons name="calculator-outline" size={24} color="#8B5CF6" />
+              </View>
+              <View>
+                <ThemedText style={{ fontSize: 16, fontWeight: '700' }}>
+                  Zakat Calculator
+                </ThemedText>
+                <ThemedText style={{ fontSize: 12, color: theme.textSecondary, marginTop: 2 }}>
+                  Calculate your yearly Zakat (2.5%)
+                </ThemedText>
+              </View>
+            </View>
+            <Ionicons name="chevron-forward" size={20} color={theme.textSecondary} />
+          </Card>
+        </Pressable>
 
         <View style={styles.bottomSpacer} />
       </ScrollView>

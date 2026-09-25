@@ -1,30 +1,30 @@
-import { Spacing } from '@/constants/theme';
-import { StyleSheet } from 'react-native';
+import { Spacing } from "@/constants/theme";
+import { StyleSheet } from "react-native";
 
 export const styles = StyleSheet.create({
   safeArea: { flex: 1 },
   scrollContent: {
-    paddingHorizontal: Spacing.four,
+    paddingHorizontal: Spacing.three,
     paddingTop: Spacing.two,
-    paddingBottom: 120,
+    paddingBottom: 105,
     gap: Spacing.three,
   },
 
   heroCard: {
     padding: 0,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   locationRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     paddingHorizontal: Spacing.four,
     paddingTop: Spacing.four,
     paddingBottom: Spacing.three,
   },
   locationLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: Spacing.two,
     flex: 1,
   },
@@ -32,15 +32,15 @@ export const styles = StyleSheet.create({
     width: 28,
     height: 28,
     borderRadius: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   locationTextWrap: {
     flex: 1,
   },
   locationCity: {
     fontSize: 13,
-    fontWeight: '700',
+    fontWeight: "700",
     letterSpacing: 0.4,
   },
   hijriText: {
@@ -49,8 +49,8 @@ export const styles = StyleSheet.create({
     marginVertical: 1,
   },
   editChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     paddingHorizontal: Spacing.two,
     paddingVertical: 5,
     borderRadius: 20,
@@ -58,7 +58,7 @@ export const styles = StyleSheet.create({
   },
   editChipText: {
     fontSize: 11,
-    fontWeight: '700',
+    fontWeight: "700",
   },
   heroDivider: {
     height: 1,
@@ -66,7 +66,7 @@ export const styles = StyleSheet.create({
   },
   heroLoader: {
     paddingVertical: Spacing.six,
-    alignItems: 'center',
+    alignItems: "center",
     gap: Spacing.two,
   },
   heroLoaderText: {
@@ -74,7 +74,7 @@ export const styles = StyleSheet.create({
     opacity: 0.8,
   },
   heroBody: {
-    alignItems: 'center',
+    alignItems: "center",
     paddingHorizontal: Spacing.four,
     paddingTop: Spacing.four,
     paddingBottom: Spacing.three,
@@ -82,25 +82,21 @@ export const styles = StyleSheet.create({
   },
   nextLabel: {
     fontSize: 11,
-    fontWeight: '700',
+    fontWeight: "700",
     letterSpacing: 1.5,
-    opacity: 0.7,
-    marginBottom: 2,
-    paddingBottom: 20,
+    opacity: 0.75,
+    marginBottom: 4,
   },
   nextPrayerName: {
-    fontSize: 28,
-    fontWeight: '800',
-    marginTop: 2,
-    padding: 5,
+    fontSize: 26,
+    fontWeight: "800",
   },
   countdownTimer: {
-    fontSize: 50,
-    fontWeight: '900',
-    letterSpacing: 3,
-    paddingVertical: 12,
-    marginVertical: Spacing.one,
-    lineHeight: 58,
+    fontSize: 42,
+    fontWeight: "900",
+    letterSpacing: 2,
+    marginVertical: 4,
+    lineHeight: 48,
   },
   nextAt: {
     fontSize: 13,
@@ -108,29 +104,29 @@ export const styles = StyleSheet.create({
     marginBottom: Spacing.three,
   },
   progressSubCard: {
-    width: '100%',
+    width: "100%",
     borderRadius: 16,
     padding: Spacing.three,
     gap: Spacing.two,
     marginTop: Spacing.one,
   },
   rangeLabels: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
   rangeText: {
     fontSize: 11,
     opacity: 0.8,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   progressPercent: {
     fontSize: 11,
     opacity: 0.65,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   progressBar: {
-    width: '100%',
+    width: "100%",
   },
 
   configCard: {
@@ -139,30 +135,30 @@ export const styles = StyleSheet.create({
   },
   configTitle: {
     fontSize: 17,
-    fontWeight: '700',
-    textAlign: 'center',
+    fontWeight: "700",
+    textAlign: "center",
   },
   gpsButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     paddingVertical: Spacing.three,
     borderRadius: 14,
     gap: Spacing.two,
   },
   actionButtonText: {
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: "700",
   },
   dividerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: Spacing.two,
   },
   dividerLine: { flex: 1, height: 1 },
   dividerLabel: {
     fontSize: 10,
-    fontWeight: '700',
+    fontWeight: "700",
     letterSpacing: 0.5,
   },
   inputGroup: {
@@ -170,7 +166,7 @@ export const styles = StyleSheet.create({
   },
   inputLabel: {
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: "600",
     letterSpacing: 0.3,
   },
   textInput: {
@@ -182,8 +178,8 @@ export const styles = StyleSheet.create({
   },
 
   errorBanner: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: Spacing.two,
     paddingHorizontal: Spacing.three,
     paddingVertical: Spacing.two,
@@ -192,7 +188,7 @@ export const styles = StyleSheet.create({
   },
   errorText: {
     fontSize: 13,
-    color: '#991B1B',
+    color: "#991B1B",
     flex: 1,
   },
 
@@ -201,7 +197,7 @@ export const styles = StyleSheet.create({
   },
   sectionLabel: {
     fontSize: 11,
-    fontWeight: '700',
+    fontWeight: "700",
     letterSpacing: 1,
   },
   calendarRow: {
@@ -213,24 +209,24 @@ export const styles = StyleSheet.create({
     paddingHorizontal: Spacing.three,
     borderRadius: 20,
     borderWidth: 1.5,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     minWidth: 52,
     gap: 2,
   },
   dayName: {
     fontSize: 9,
-    fontWeight: '800',
+    fontWeight: "800",
     letterSpacing: 0.5,
   },
   dayNum: {
     fontSize: 17,
-    fontWeight: '800',
+    fontWeight: "800",
   },
 
   emptyState: {
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     paddingVertical: Spacing.six,
     gap: Spacing.two,
   },
@@ -239,23 +235,25 @@ export const styles = StyleSheet.create({
   },
 
   ayatCard: {
-    alignItems: 'center',
-    gap: Spacing.two,
-    paddingVertical: Spacing.five,
+    alignItems: "center",
+    gap: Spacing.one,
+    paddingVertical: Spacing.one,
   },
   ayatIconWrap: {
     width: 44,
     height: 44,
     borderRadius: 22,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     marginBottom: Spacing.one,
   },
   ayatText: {
-    fontSize: 14,
-    fontStyle: 'italic',
-    textAlign: 'center',
-    lineHeight: 22,
+    alignSelf: "stretch",
+    flexShrink: 1,
+    fontSize: 14.5,
+    fontStyle: "italic",
+    textAlign: "center",
+    lineHeight: 25,
     opacity: 0.9,
     paddingHorizontal: Spacing.two,
   },
@@ -266,9 +264,8 @@ export const styles = StyleSheet.create({
   },
   ayatRef: {
     fontSize: 11,
-    fontWeight: '700',
+    fontWeight: "700",
     letterSpacing: 1,
     opacity: 0.8,
   },
-  bottomSpacer: { height: 20 },
 });

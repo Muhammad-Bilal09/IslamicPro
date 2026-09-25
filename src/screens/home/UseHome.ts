@@ -1,6 +1,6 @@
 import { useTranslation } from '@/context/translation-context';
 import { PrayerTimings } from '@/types/type';
-import { quranApi } from '@/utils/api';
+import apiClient from '@/utils/api';
 import {
   fetchPrayerTimesByCity,
   fetchPrayerTimesByCoords,
@@ -11,7 +11,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import { useAuth } from '@/context/auth-context';
-import { checkIfQuranDownloaded, getRandomAyah } from '@/utils/quranDb';
+import { checkIfQuranDownloaded, getRandomAyah, sanitizeArabicText } from '@/utils/quranDb';
 
 export interface DailyAyah {
   text: string;
@@ -210,8 +210,11 @@ export const useHome = () => {
       const cached = await AsyncStorage.getItem('daily_ayah');
       if (cached) {
         const parsed: DailyAyah = JSON.parse(cached);
-        if (parsed.date === todayStr && parsed.lang === translationLang) {
-          setDailyAyahData(parsed);
+        if (parsed.date === todayStr && parsed.lang === translationLang && parsed.surahName) {
+          setDailyAyahData({
+            ...parsed,
+            text: sanitizeArabicText(parsed.text),
+          });
           setIsAyahLoading(false);
           return;
         }
@@ -223,27 +226,32 @@ export const useHome = () => {
         await AsyncStorage.setItem('daily_ayah', JSON.stringify(localAyah));
         setDailyAyahData(localAyah);
       } else {
-        const randomIdx = Math.floor(Math.random() * 6236) + 1;
-        const translationEdition = translationLang === 'ur' ? 'ur.jalandhry' : 'en.asad';
-        const res = await quranApi.get(`/ayah/${randomIdx}/editions/quran-simple,${translationEdition}`);
-        const data = res.data;
+        const translationId = translationLang === 'ur' ? 234 : 20;
+        const res = await apiClient.get(`/quran/verses/random?words=false&translations=${translationId}&fields=text_indopak,text_uthmani`);
+        const verse = res.data?.verse;
+        const verseText = verse ? (verse.text_indopak || verse.text_uthmani || '') : '';
 
-        if (data.code === 200 && Array.isArray(data.data) && data.data.length >= 2) {
-          const arabic = data.data[0];
-          const translation = data.data[1];
+        if (verse && verseText) {
+          const verseKey = verse.verse_key || '94:5';
+          const [sNum, aNum] = verseKey.split(':').map((v: string) => parseInt(v, 10) || 1);
+          const rawText = verse.translations?.[0]?.text || '';
+          const translationText = rawText
+            ? rawText.replace(/<sup[^>]*>.*?<\/sup>/gi, '').replace(/<[^>]*>?/gm, '').trim()
+            : 'For indeed, with hardship [will be] ease.';
+
           const newAyah: DailyAyah = {
-            text: arabic.text,
-            translation: translation.text,
-            surahName: arabic.surah.englishName,
-            surahNumber: arabic.surah.number,
-            numberInSurah: arabic.numberInSurah,
+            text: sanitizeArabicText(verseText),
+            translation: translationText,
+            surahName: `Surah ${sNum}`,
+            surahNumber: sNum,
+            numberInSurah: aNum || verse.verse_number || 1,
             date: todayStr,
             lang: translationLang,
           };
           await AsyncStorage.setItem('daily_ayah', JSON.stringify(newAyah));
           setDailyAyahData(newAyah);
         } else {
-          throw new Error('Invalid response from Quran API.');
+          throw new Error('Invalid response from Quran.com API.');
         }
       }
     } catch (err) {

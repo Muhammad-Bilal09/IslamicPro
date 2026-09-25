@@ -2,7 +2,7 @@
   "expo": {
     "name": "Amin",
     "slug": "Amin",
-    "version": "1.0.0",
+    "version": "1.0.2",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "amin",
@@ -14,7 +14,9 @@
     },
     "ios": {
       "icon": "./assets/images/icon.png",
-      "bundleIdentifier": "com.r_bilal.Amin",
+      "bundleIdentifier": "com.medialinks.amin",
+      "googleServicesFile": "./GoogleService-Info.plist",
+      "buildNumber": "4",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       }
@@ -33,12 +35,15 @@
         "android.permission.POST_NOTIFICATIONS",
         "android.permission.SCHEDULE_EXACT_ALARM",
         "android.permission.USE_EXACT_ALARM",
-        "android.permission.RECEIVE_BOOT_COMPLETED"
+        "android.permission.RECEIVE_BOOT_COMPLETED",
+        "android.permission.WAKE_LOCK"
       ],
       "blockedPermissions": [
         "android.permission.ACTIVITY_RECOGNITION"
       ],
-      "package": "com.r_bilal.Amin",
+      "package": "com.medialinks.amin",
+      "googleServicesFile": "./google-services.json",
+      "versionCode": 3,
       "splash": {
         "image": "./assets/images/icon.png",
         "resizeMode": "contain",
@@ -63,6 +68,7 @@
       [
         "expo-notifications",
         {
+          "icon": "./assets/images/icon.png",
           "sounds": [
             "./assets/sounds/azan.wav"
           ]
@@ -70,7 +76,8 @@
       ],
       "expo-audio",
       "expo-asset",
-      "expo-sqlite"
+      "expo-sqlite",
+      "@react-native-firebase/app"
     ],
     "experiments": {
       "typedRoutes": true,
@@ -79,7 +86,7 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "3d99af30-c542-4090-9af8-20bb087c6df9"
+        "projectId": "52923b19-414e-47f5-92a0-81a4e3052d54"
       }
     }
   }

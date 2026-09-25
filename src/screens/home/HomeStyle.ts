@@ -1,52 +1,52 @@
-import { Spacing } from '@/constants/theme';
-import { StyleSheet } from 'react-native';
+import { Spacing } from "@/constants/theme";
+import { Platform, StyleSheet } from "react-native";
 
 export const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
   },
   scrollContent: {
-    paddingHorizontal: Spacing.four,
+    paddingHorizontal: Spacing.three,
     paddingBottom: 100,
   },
   prayerCard: {
     marginTop: Spacing.two,
   },
   prayerHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: Spacing.one,
   },
   prayerSubtitle: {
     fontSize: 11,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     letterSpacing: 1.2,
   },
   prayerTitle: {
     fontSize: 36,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginVertical: Spacing.two,
     paddingVertical: Spacing.two,
   },
   prayerTimeEnd: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: Spacing.one,
     marginBottom: Spacing.four,
     opacity: 0.9,
   },
   prayerEndTimeText: {
     fontSize: 14,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   nextPrayerContainer: {
     borderRadius: 16,
     padding: Spacing.four,
   },
   nextPrayerRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: Spacing.two,
   },
   nextPrayerLabel: {
@@ -54,13 +54,13 @@ export const styles = StyleSheet.create({
     opacity: 0.8,
   },
   nextPrayerName: {
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   timerText: {
     fontSize: 32,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginVertical: Spacing.one,
-    fontVariant: ['tabular-nums'],
+    fontVariant: ["tabular-nums"],
     lineHeight: 38,
   },
   progressBar: {
@@ -68,19 +68,19 @@ export const styles = StyleSheet.create({
   },
   quoteText: {
     fontSize: 12,
-    fontStyle: 'italic',
-    textAlign: 'center',
+    fontStyle: "italic",
+    textAlign: "center",
     opacity: 0.7,
   },
   ayahCard: {
     marginVertical: Spacing.two,
-    alignItems: 'center',
+    alignItems: "center",
   },
   ayahHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    width: '100%',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    width: "100%",
+    alignItems: "center",
     marginBottom: Spacing.three,
   },
   bookmarkButton: {
@@ -88,28 +88,32 @@ export const styles = StyleSheet.create({
   },
   arabicText: {
     fontSize: 26,
-    fontWeight: 'bold',
-    textAlign: 'center',
+    fontWeight: "normal",
+    textAlign: "center",
     marginVertical: Spacing.three,
-    lineHeight: 40,
-    fontFamily: 'serif',
+    lineHeight: 50,
+    fontFamily: "DigitalKhattIndoPak",
+    includeFontPadding: false,
   },
   translationText: {
-    fontSize: 14,
-    fontStyle: 'italic',
-    textAlign: 'center',
-    lineHeight: 22,
+    alignSelf: "stretch",
+    flexShrink: 1,
+    fontSize: 14.5,
+    fontStyle: "italic",
+    textAlign: "center",
+    lineHeight: 25,
+    paddingHorizontal: Spacing.two,
   },
   referenceText: {
     fontSize: 12,
-    fontWeight: '600',
-    textAlign: 'center',
+    fontWeight: "600",
+    textAlign: "center",
     marginTop: Spacing.three,
     marginBottom: Spacing.four,
   },
   shareButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: Spacing.two,
     borderWidth: 1.5,
     borderRadius: 24,
@@ -118,19 +122,19 @@ export const styles = StyleSheet.create({
   },
   shareButtonText: {
     fontSize: 13,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   quickActionsRow: {
-    flexDirection: 'column',
+    flexDirection: "column",
     gap: Spacing.two,
     marginVertical: Spacing.one,
   },
   quickActionPressable: {
-    width: '100%',
+    width: "100%",
   },
   quickActionCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     padding: Spacing.three,
     gap: Spacing.three,
     marginVertical: 0,
@@ -139,15 +143,15 @@ export const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   quickActionTextContainer: {
     flex: 1,
   },
   quickActionTitle: {
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   quickActionSubtitle: {
     fontSize: 12,
@@ -157,17 +161,17 @@ export const styles = StyleSheet.create({
     marginVertical: Spacing.two,
   },
   streakHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: Spacing.three,
   },
   streakTitle: {
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   segmentsRow: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: Spacing.two,
     marginVertical: Spacing.two,
   },
@@ -182,6 +186,6 @@ export const styles = StyleSheet.create({
     opacity: 0.9,
   },
   bottomSpacer: {
-    height: 40,
+    height: 5,
   },
 });

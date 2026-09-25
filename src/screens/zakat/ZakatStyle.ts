@@ -1,0 +1,387 @@
+import { StyleSheet } from 'react-native';
+import { Spacing } from '@/constants/theme';
+
+export const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+  },
+  headerTitleContainer: {
+    paddingHorizontal: Spacing.four,
+    paddingTop: Spacing.two,
+    paddingBottom: Spacing.two,
+    alignItems: 'center',
+  },
+  titleText: {
+    fontSize: 20,
+    fontWeight: '800',
+    color: '#094C3A',
+    textAlign: 'center',
+    marginBottom: 4,
+  },
+  subtitleText: {
+    fontSize: 13,
+    textAlign: 'center',
+    lineHeight: 18,
+    paddingHorizontal: Spacing.two,
+  },
+  stepperContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: Spacing.four,
+    marginVertical: Spacing.three,
+  },
+  stepItem: {
+    alignItems: 'center',
+    flex: 1,
+  },
+  stepCircleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    width: '100%',
+    justifyContent: 'center',
+  },
+  stepCircle: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#E2E8F0',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  stepCircleActive: {
+    backgroundColor: '#094C3A',
+  },
+  stepCircleCompleted: {
+    backgroundColor: '#10B981',
+  },
+  stepNumberText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#64748B',
+  },
+  stepNumberTextActive: {
+    color: '#FFFFFF',
+  },
+  stepTitleText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#64748B',
+    marginTop: 6,
+    textAlign: 'center',
+  },
+  stepTitleTextActive: {
+    fontWeight: '800',
+    color: '#094C3A',
+  },
+  stepLineContainer: {
+    flex: 1,
+    height: 2,
+    backgroundColor: '#E2E8F0',
+    marginHorizontal: 4,
+    marginBottom: 20,
+  },
+  stepLineActive: {
+    backgroundColor: '#094C3A',
+  },
+  topControlsRow: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+    paddingHorizontal: Spacing.four,
+    marginBottom: Spacing.three,
+  },
+  currencyBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    borderWidth: 1,
+  },
+  currencyBtnText: {
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  scrollContent: {
+    paddingHorizontal: Spacing.three,
+    paddingBottom: 110,
+  },
+  card: {
+    marginBottom: Spacing.three,
+    padding: Spacing.three,
+    borderRadius: 18,
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.two,
+    marginBottom: Spacing.three,
+  },
+  iconCircle: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  cardTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  cardSubtitle: {
+    fontSize: 11,
+    marginTop: 2,
+  },
+  inputGroup: {
+    marginBottom: Spacing.three,
+  },
+  inputLabel: {
+    fontSize: 13,
+    fontWeight: '600',
+    marginBottom: 6,
+  },
+  inputWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderRadius: 12,
+    height: 48,
+    paddingHorizontal: 12,
+  },
+  currencyPrefix: {
+    fontSize: 15,
+    fontWeight: '700',
+    marginRight: 8,
+  },
+  textInput: {
+    flex: 1,
+    fontSize: 15,
+    fontWeight: '600',
+    height: '100%',
+  },
+  calculatedHint: {
+    fontSize: 11,
+    fontWeight: '600',
+    marginTop: 4,
+    alignSelf: 'flex-end',
+  },
+  nisabToggleContainer: {
+    marginBottom: Spacing.three,
+  },
+  nisabLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    marginBottom: 6,
+  },
+  nisabSegmentRow: {
+    flexDirection: 'row',
+    borderRadius: 10,
+    padding: 3,
+  },
+  segmentBtn: {
+    flex: 1,
+    paddingVertical: 8,
+    alignItems: 'center',
+    borderRadius: 8,
+  },
+  segmentText: {
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  ratesRow: {
+    flexDirection: 'row',
+    gap: Spacing.two,
+    marginTop: Spacing.one,
+  },
+  rateInputBox: {
+    flex: 1,
+  },
+  rateLabel: {
+    fontSize: 11,
+    fontWeight: '600',
+    marginBottom: 4,
+  },
+  rateInput: {
+    height: 40,
+    borderRadius: 8,
+    borderWidth: 1,
+    paddingHorizontal: 10,
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  stepNavRow: {
+    flexDirection: 'row',
+    gap: Spacing.two,
+    marginVertical: Spacing.two,
+  },
+  primaryPillBtn: {
+    flex: 1,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: '#094C3A',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingHorizontal: 16,
+  },
+  primaryPillBtnText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
+  secondaryPillBtn: {
+    flex: 1,
+    height: 48,
+    borderRadius: 24,
+    borderWidth: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingHorizontal: 16,
+  },
+  secondaryPillBtnText: {
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  liveSummaryCard: {
+    marginTop: Spacing.two,
+    marginBottom: Spacing.three,
+    padding: Spacing.four,
+    borderRadius: 20,
+  },
+  liveSummaryTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+    marginBottom: Spacing.two,
+  },
+  summaryRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 8,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+  },
+  summaryLabel: {
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  summaryValue: {
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  zakatHighlightBox: {
+    marginTop: Spacing.three,
+    padding: Spacing.three,
+    borderRadius: 14,
+    alignItems: 'center',
+  },
+  zakatDueLabel: {
+    fontSize: 11,
+    fontWeight: '800',
+    letterSpacing: 0.8,
+    marginBottom: 4,
+  },
+  zakatDueAmount: {
+    fontSize: 28,
+    fontWeight: '900',
+    marginVertical: 2,
+  },
+  statusBadge: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  statusBadgeText: {
+    fontSize: 11,
+    fontWeight: '800',
+    letterSpacing: 0.5,
+  },
+  actionRow: {
+    flexDirection: 'row',
+    gap: Spacing.two,
+    marginTop: Spacing.three,
+  },
+  actionBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    height: 44,
+    borderRadius: 12,
+    borderWidth: 1,
+  },
+  actionBtnText: {
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  guideCard: {
+    marginTop: Spacing.two,
+    marginBottom: Spacing.three,
+    padding: Spacing.three,
+    borderRadius: 16,
+  },
+  guideHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  guideTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.two,
+  },
+  guideTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+  },
+  guideContent: {
+    marginTop: Spacing.two,
+    paddingTop: Spacing.two,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    gap: Spacing.two,
+  },
+  guideText: {
+    fontSize: 12,
+    lineHeight: 18,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    padding: Spacing.four,
+    maxHeight: '70%',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: Spacing.three,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '800',
+  },
+  currencyOption: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 8,
+    borderRadius: 10,
+    marginBottom: 4,
+  },
+  currencyOptionText: {
+    fontSize: 15,
+    fontWeight: '600',
+  },
+});
+

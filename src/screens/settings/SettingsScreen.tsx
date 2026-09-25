@@ -57,18 +57,27 @@ export function SettingsScreen() {
   const theme = useTheme();
   const {
     router,
-    player,
-    isPlaying,
     prayerReminder,
     dailyAyah,
     handleToggleDailyAyah,
     sound,
     calculationMethod,
     juristicSchool,
+    arabicFont,
+    handleSelectArabicFont,
     handleToggleReminder,
     handleToggleSound,
     handleSelectMethod,
     handleSelectSchool,
+    exactAlarmAllowed,
+    batteryOptEnabled,
+    isOEM,
+    manufacturer,
+    notificationPermissionGranted,
+    handleOpenAlarmSettings,
+    handleOpenBatterySettings,
+    handleOpenOEMAutostart,
+    handleRequestNotificationPermission,
     logout,
   } = useSettings();
 
@@ -83,6 +92,66 @@ export function SettingsScreen() {
       </View>
 
       <ScrollView contentContainerStyle={styles.content}>
+        {!notificationPermissionGranted && (
+          <View style={{ backgroundColor: '#FEF2F2', borderColor: '#FECACA', borderWidth: 1, borderRadius: 12, padding: 14, marginBottom: 16 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+              <Ionicons name="notifications-off-outline" size={20} color="#DC2626" />
+              <ThemedText style={{ color: '#991B1B', fontWeight: 'bold', fontSize: 14 }}>Push Notifications Disabled</ThemedText>
+            </View>
+            <ThemedText style={{ color: '#7F1D1D', fontSize: 12, marginBottom: 10 }}>
+              Push notification permission is turned off in Android system settings.
+            </ThemedText>
+            <Pressable onPress={handleRequestNotificationPermission} style={{ backgroundColor: '#DC2626', borderRadius: 8, paddingVertical: 8, paddingHorizontal: 12, alignSelf: 'flex-start' }}>
+              <ThemedText style={{ color: '#FFFFFF', fontWeight: '600', fontSize: 12 }}>Enable Notifications</ThemedText>
+            </Pressable>
+          </View>
+        )}
+
+        {!exactAlarmAllowed && (
+          <View style={{ backgroundColor: '#FFFBEB', borderColor: '#FDE68A', borderWidth: 1, borderRadius: 12, padding: 14, marginBottom: 16 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+              <Ionicons name="alarm-outline" size={20} color="#D97706" />
+              <ThemedText style={{ color: '#92400E', fontWeight: 'bold', fontSize: 14 }}>Exact Alarm Permission Required</ThemedText>
+            </View>
+            <ThemedText style={{ color: '#78350F', fontSize: 12, marginBottom: 10 }}>
+              Android 12+ requires "Alarms & Reminders" permission to deliver prayer alerts on the exact second.
+            </ThemedText>
+            <Pressable onPress={handleOpenAlarmSettings} style={{ backgroundColor: '#D97706', borderRadius: 8, paddingVertical: 8, paddingHorizontal: 12, alignSelf: 'flex-start' }}>
+              <ThemedText style={{ color: '#FFFFFF', fontWeight: '600', fontSize: 12 }}>Allow Exact Alarms</ThemedText>
+            </Pressable>
+          </View>
+        )}
+
+        {/* {batteryOptEnabled && (
+          <View style={{ backgroundColor: '#EFF6FF', borderColor: '#BFDBFE', borderWidth: 1, borderRadius: 12, padding: 14, marginBottom: 16 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+              <Ionicons name="battery-dead-outline" size={20} color="#2563EB" />
+              <ThemedText style={{ color: '#1E40AF', fontWeight: 'bold', fontSize: 14 }}>Battery Saver Optimization Active</ThemedText>
+            </View>
+            <ThemedText style={{ color: '#1E3A8A', fontSize: 12, marginBottom: 10 }}>
+              Select "Unrestricted" battery usage for Amin so the phone OS does not kill background alarms during deep sleep.
+            </ThemedText>
+            <Pressable onPress={handleOpenBatterySettings} style={{ backgroundColor: '#2563EB', borderRadius: 8, paddingVertical: 8, paddingHorizontal: 12, alignSelf: 'flex-start' }}>
+              <ThemedText style={{ color: '#FFFFFF', fontWeight: '600', fontSize: 12 }}>Disable Battery Restrictions</ThemedText>
+            </Pressable>
+          </View>
+        )} */}
+
+        {isOEM && (
+          <View style={{ backgroundColor: '#F0FDF4', borderColor: '#BBF7D0', borderWidth: 1, borderRadius: 12, padding: 14, marginBottom: 16 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+              <Ionicons name="shield-checkmark-outline" size={20} color="#16A34A" />
+              <ThemedText style={{ color: '#166534', fontWeight: 'bold', fontSize: 14 }}>{manufacturer.toUpperCase()} Autostart Permission</ThemedText>
+            </View>
+            <ThemedText style={{ color: '#14532D', fontSize: 12, marginBottom: 10 }}>
+              Your device ({manufacturer}) requires "Autostart" / "Background Start" permission enabled in system settings so prayer alarms fire when app is closed.
+            </ThemedText>
+            <Pressable onPress={handleOpenOEMAutostart} style={{ backgroundColor: '#16A34A', borderRadius: 8, paddingVertical: 8, paddingHorizontal: 12, alignSelf: 'flex-start' }}>
+              <ThemedText style={{ color: '#FFFFFF', fontWeight: '600', fontSize: 12 }}>Open Autostart Settings</ThemedText>
+            </Pressable>
+          </View>
+        )}
+
         <ThemedText style={styles.groupLabel} themeColor="textSecondary">
           Notifications
         </ThemedText>
@@ -130,7 +199,26 @@ export function SettingsScreen() {
           />
         </View>
 
-        <View style={{ flex: 1 }} />
+        <ThemedText style={styles.groupLabel} themeColor="textSecondary">
+          Quran & Display
+        </ThemedText>
+        <View style={[styles.group, { backgroundColor: theme.cardBackground, borderColor: theme.border }]}>
+          <Row
+            icon="text-outline"
+            label="Arabic Font Style"
+            detail={
+              arabicFont === 'Amiri-Regular'
+                ? 'Amiri'
+                : arabicFont === 'DigitalKhattIndoPak'
+                ? 'Indo-Pak'
+                : 'Classic Naskh'
+            }
+            onPress={handleSelectArabicFont}
+            isLast
+          />
+        </View>
+
+        <View style={{ height: 24 }} />
 
         <Pressable
           onPress={logout}

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "5605624385",
+    "project_id": "amin-prayer-app",
+    "storage_bucket": "amin-prayer-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:5605624385:android:f64898483d8a1255f5d4c0",
+        "android_client_info": {
+          "package_name": "com.medialinks.amin"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD7PjX_xoVME-KzY8lvp5EEcwHP9AlkiVs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

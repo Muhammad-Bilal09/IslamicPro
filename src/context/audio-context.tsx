@@ -5,6 +5,8 @@ import React, { createContext, useContext, useEffect, useRef, useState } from 'r
 import { useAuth } from './auth-context';
 import { useConnection } from './connection-context';
 
+export type RepeatMode = 'off' | 'surah' | 'ayah';
+
 export interface PlayingContext {
   type: 'surah' | 'juz' | null;
   id: number | null;
@@ -19,6 +21,8 @@ interface AudioContextType {
   playingContext: PlayingContext;
   autoAdvance: boolean;
   setAutoAdvance: (val: boolean) => void;
+  repeatMode: RepeatMode;
+  toggleRepeatMode: () => void;
   playAyah: (index: number, ayahsList: UnifiedAyah[], context: PlayingContext) => Promise<void>;
   togglePlayPause: () => void;
   stopAudio: () => void;
@@ -44,15 +48,18 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     title: '',
   });
   const [autoAdvance, setAutoAdvance] = useState(true);
+  const [repeatMode, setRepeatMode] = useState<RepeatMode>('off');
 
   const currentAyahIndexRef = useRef<number | null>(null);
   const ayahsRef = useRef<UnifiedAyah[]>([]);
   const autoAdvanceRef = useRef(true);
+  const repeatModeRef = useRef<RepeatMode>('off');
   const playingContextRef = useRef<PlayingContext>({ type: null, id: null, title: '' });
 
   useEffect(() => { currentAyahIndexRef.current = currentAyahIndex; }, [currentAyahIndex]);
   useEffect(() => { ayahsRef.current = ayahs; }, [ayahs]);
   useEffect(() => { autoAdvanceRef.current = autoAdvance; }, [autoAdvance]);
+  useEffect(() => { repeatModeRef.current = repeatMode; }, [repeatMode]);
   useEffect(() => { playingContextRef.current = playingContext; }, [playingContext]);
 
   useEffect(() => {
@@ -70,12 +77,23 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   }, [isOnline]);
 
   useEffect(() => {
-    if (status.didJustFinish && autoAdvanceRef.current) {
+    if (status.didJustFinish) {
       const currentIdx = currentAyahIndexRef.current;
-      if (currentIdx !== null) {
+      if (currentIdx === null) return;
+
+      const repeat = repeatModeRef.current;
+
+      if (repeat === 'ayah') {
+        playAyahInternal(currentIdx, false);
+        return;
+      }
+
+      if (autoAdvanceRef.current) {
         const nextIdx = currentIdx + 1;
         if (nextIdx < ayahsRef.current.length) {
-          playAyahInternal(nextIdx);
+          playAyahInternal(nextIdx, false);
+        } else if (repeat === 'surah') {
+          playAyahInternal(0, false);
         } else {
           setCurrentAyahIndex(null);
           currentAyahIndexRef.current = null;
@@ -84,7 +102,15 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   }, [status.didJustFinish]);
 
-  const playAyahInternal = async (index: number) => {
+  const toggleRepeatMode = () => {
+    setRepeatMode((prev) => {
+      if (prev === 'off') return 'surah';
+      if (prev === 'surah') return 'ayah';
+      return 'off';
+    });
+  };
+
+  const playAyahInternal = async (index: number, isManual = false) => {
     const list = ayahsRef.current;
     const context = playingContextRef.current;
     if (index < 0 || index >= list.length) return;
@@ -131,13 +157,13 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     ayahsRef.current = ayahsList;
     setPlayingContext(context);
     playingContextRef.current = context;
-    await playAyahInternal(index);
+    await playAyahInternal(index, true);
   };
 
   const togglePlayPause = () => {
     if (currentAyahIndex === null) {
       if (ayahs.length > 0) {
-        playAyahInternal(0);
+        playAyahInternal(0, true);
       }
       return;
     }
@@ -165,7 +191,9 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     if (idx === null) return;
     const nextIdx = idx + 1;
     if (nextIdx < ayahsRef.current.length) {
-      playAyahInternal(nextIdx);
+      playAyahInternal(nextIdx, true);
+    } else if (repeatModeRef.current === 'surah') {
+      playAyahInternal(0, true);
     }
   };
 
@@ -174,7 +202,7 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     if (idx === null) return;
     const prevIdx = idx - 1;
     if (prevIdx >= 0) {
-      playAyahInternal(prevIdx);
+      playAyahInternal(prevIdx, true);
     }
   };
 
@@ -188,6 +216,8 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         playingContext,
         autoAdvance,
         setAutoAdvance,
+        repeatMode,
+        toggleRepeatMode,
         playAyah,
         togglePlayPause,
         stopAudio,

@@ -1,25 +1,23 @@
-import { Ionicons } from '@expo/vector-icons';
-import {
-  ActivityIndicator,
-  FlatList,
-  Pressable,
-  View,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons } from "@expo/vector-icons";
+import { ActivityIndicator, FlatList, Pressable, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
-import Badge from '@/components/badge';
-import Card from '@/components/card';
-import { ThemedText } from '@/components/themed-text';
-import { useTheme } from '@/hooks/use-theme';
-import { UnifiedAyah } from '@/types/type';
+import Badge from "@/components/badge";
+import Card from "@/components/card";
+import { ThemedText } from "@/components/themed-text";
+import { useTheme } from "@/hooks/use-theme";
+import { UnifiedAyah } from "@/types/type";
 
-import { useTranslation } from '@/context/translation-context';
-import { useConnection } from '@/context/connection-context';
-import { styles } from './SurahStyle';
-import { useSurah } from './UseSurah';
+import { useConnection } from "@/context/connection-context";
+import { useTranslation } from "@/context/translation-context";
+import { sanitizeArabicText } from "@/utils/quranDb";
+import { useArabicFont } from "@/utils/fontHelper";
+import { styles } from "./SurahStyle";
+import { useSurah } from "./UseSurah";
 
 export function SurahScreen() {
   const theme = useTheme();
+  const arabicFont = useArabicFont();
   const { isOnline } = useConnection();
   const { translationLang, toggleTranslation } = useTranslation();
   const {
@@ -33,6 +31,8 @@ export function SurahScreen() {
     isLoadingAudio,
     autoAdvance,
     setAutoAdvance,
+    repeatMode,
+    toggleRepeatMode,
     isPlaying,
     flatListRef,
     fetchSurahData,
@@ -48,42 +48,74 @@ export function SurahScreen() {
     toggleBookmark,
   } = useSurah();
 
-  const renderAyahItem = ({ item, index }: { item: UnifiedAyah; index: number }) => {
+  const renderAyahItem = ({
+    item,
+    index,
+  }: {
+    item: UnifiedAyah;
+    index: number;
+  }) => {
     const isActive = index === currentAyahIndex;
     return (
       <Card
-        variant={isActive ? 'default' : 'outlined'}
+        variant={isActive ? "default" : "outlined"}
         style={[
           styles.ayahCard,
           {
             borderColor: isActive ? theme.primary : theme.border,
             borderWidth: isActive ? 2 : 1,
-            backgroundColor: isActive ? theme.primaryLight : theme.cardBackground,
+            backgroundColor: isActive
+              ? theme.primaryLight
+              : theme.cardBackground,
           },
         ]}
       >
         <View style={styles.ayahHeader}>
-          <View style={[styles.numberContainer, { backgroundColor: isActive ? theme.primary : theme.backgroundElement }]}>
-            <ThemedText style={[styles.ayahNumber, { color: isActive ? theme.textOnPrimary : theme.text }]}>
+          <View
+            style={[
+              styles.numberContainer,
+              {
+                backgroundColor: isActive
+                  ? theme.primary
+                  : theme.backgroundElement,
+              },
+            ]}
+          >
+            <ThemedText
+              style={[
+                styles.ayahNumber,
+                { color: isActive ? theme.textOnPrimary : theme.text },
+              ]}
+            >
               {item.numberInSurah}
             </ThemedText>
           </View>
 
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
             {isOnline && (
               <Pressable
-                style={[styles.playButtonCircle, { backgroundColor: isActive && isPlaying ? theme.accent : theme.primary }]}
+                style={[
+                  styles.playButtonCircle,
+                  {
+                    backgroundColor:
+                      isActive && isPlaying ? theme.accent : theme.primary,
+                  },
+                ]}
                 onPress={() => playAyah(index)}
               >
                 {isActive && isLoadingAudio ? (
                   <ActivityIndicator size="small" color="#FFFFFF" />
                 ) : (
-                  <Ionicons name={isActive && isPlaying ? 'pause' : 'play'} size={14} color="#FFFFFF" />
+                  <Ionicons
+                    name={isActive && isPlaying ? "pause" : "play"}
+                    size={14}
+                    color="#FFFFFF"
+                  />
                 )}
               </Pressable>
             )}
 
-            {user && token !== 'guest' && (
+            {user && token !== "guest" && (
               <Pressable
                 style={[
                   styles.bookmarkButtonCircle,
@@ -95,18 +127,28 @@ export function SurahScreen() {
                 onPress={() => toggleBookmark(item)}
               >
                 <Ionicons
-                  name={isBookmarked(item) ? 'bookmark' : 'bookmark-outline'}
+                  name={isBookmarked(item) ? "bookmark" : "bookmark-outline"}
                   size={14}
-                  color={isBookmarked(item) ? theme.primary : theme.textSecondary}
+                  color={
+                    isBookmarked(item) ? theme.primary : theme.textSecondary
+                  }
                 />
               </Pressable>
             )}
           </View>
         </View>
 
-        <ThemedText style={styles.arabicText}>{item.text}</ThemedText>
+        <ThemedText style={[styles.arabicText, { fontFamily: arabicFont }]}>
+          {sanitizeArabicText(item.text)}
+        </ThemedText>
 
-        <ThemedText style={styles.translationText} themeColor="textSecondary">
+        <ThemedText
+          style={[
+            styles.translationText,
+            translationLang === "ur" && styles.urduTranslationText,
+          ]}
+          themeColor="textSecondary"
+        >
           {item.translation}
         </ThemedText>
       </Card>
@@ -114,7 +156,10 @@ export function SurahScreen() {
   };
 
   return (
-    <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]} edges={['top', 'bottom']}>
+    <SafeAreaView
+      style={[styles.safeArea, { backgroundColor: theme.background }]}
+      edges={["top", "bottom"]}
+    >
       <View style={[styles.header, { borderBottomColor: theme.border }]}>
         <Pressable onPress={() => router.back()} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color={theme.text} />
@@ -122,9 +167,15 @@ export function SurahScreen() {
 
         {surahInfo ? (
           <View style={styles.headerTitleContainer}>
-            <ThemedText style={styles.headerTitle}>{surahInfo.englishName}</ThemedText>
-            <ThemedText style={styles.headerSubtitle} themeColor="textSecondary">
-              {surahInfo.englishNameTranslation} • {surahInfo.numberOfAyahs} Ayahs
+            <ThemedText style={styles.headerTitle}>
+              {surahInfo.englishName}
+            </ThemedText>
+            <ThemedText
+              style={styles.headerSubtitle}
+              themeColor="textSecondary"
+            >
+              {surahInfo.englishNameTranslation} • {surahInfo.numberOfAyahs}{" "}
+              Ayahs
             </ThemedText>
           </View>
         ) : (
@@ -139,11 +190,13 @@ export function SurahScreen() {
             borderRadius: 16,
             backgroundColor: theme.primaryLight,
             borderWidth: 1,
-            borderColor: theme.primary + '20',
+            borderColor: theme.primary + "20",
           }}
         >
-          <ThemedText style={{ fontSize: 10, fontWeight: '800', color: theme.primary }}>
-            {translationLang === 'ur' ? 'ENGLISH' : 'URDU'}
+          <ThemedText
+            style={{ fontSize: 10, fontWeight: "800", color: theme.primary }}
+          >
+            {translationLang === "ur" ? "ENGLISH" : "URDU"}
           </ThemedText>
         </Pressable>
       </View>
@@ -157,10 +210,19 @@ export function SurahScreen() {
         </View>
       ) : errorMsg ? (
         <View style={styles.errorContainer}>
-          <Ionicons name="alert-circle-outline" size={48} color={theme.accent} />
+          <Ionicons
+            name="alert-circle-outline"
+            size={48}
+            color={theme.accent}
+          />
           <ThemedText style={styles.errorText}>{errorMsg}</ThemedText>
-          <Pressable style={[styles.retryButton, { backgroundColor: theme.primary }]} onPress={fetchSurahData}>
-            <ThemedText style={styles.retryText} themeColor="textOnPrimary">Retry</ThemedText>
+          <Pressable
+            style={[styles.retryButton, { backgroundColor: theme.primary }]}
+            onPress={fetchSurahData}
+          >
+            <ThemedText style={styles.retryText} themeColor="textOnPrimary">
+              Retry
+            </ThemedText>
           </Pressable>
         </View>
       ) : (
@@ -179,8 +241,8 @@ export function SurahScreen() {
             ListHeaderComponent={
               surahId !== 9 && surahId !== 1 ? (
                 <Card variant="outlined" style={styles.bismillahCard}>
-                  <ThemedText style={styles.bismillahText}>
-                    بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ
+                  <ThemedText style={[styles.bismillahText, { fontFamily: arabicFont }]}>
+                    بِسۡمِ اللهِ الرَّحۡمٰنِ الرَّحِيۡمِ
                   </ThemedText>
                 </Card>
               ) : null
@@ -194,7 +256,7 @@ export function SurahScreen() {
                 {
                   backgroundColor: theme.cardBackground,
                   borderColor: theme.border,
-                  shadowColor: '#000',
+                  shadowColor: "#000",
                 },
               ]}
             >
@@ -203,7 +265,10 @@ export function SurahScreen() {
                   <ThemedText style={styles.playerSurahName}>
                     {surahInfo?.englishName} • Ayah {currentAyahIndex + 1}
                   </ThemedText>
-                  <ThemedText style={styles.playerReciter} themeColor="textSecondary">
+                  <ThemedText
+                    style={styles.playerReciter}
+                    themeColor="textSecondary"
+                  >
                     Qari Mishary Rashid Alafasy
                   </ThemedText>
                 </View>
@@ -211,22 +276,45 @@ export function SurahScreen() {
                   <ActivityIndicator size="small" color={theme.primary} />
                 ) : (
                   <Badge
-                    text={isPlaying ? 'Playing' : 'Paused'}
-                    variant={isPlaying ? 'success' : 'light'}
+                    text={isPlaying ? "Playing" : "Paused"}
+                    variant={isPlaying ? "success" : "light"}
                   />
                 )}
               </View>
 
               <View style={styles.playerControlsRow}>
                 <Pressable
-                  style={[styles.utilityBtn, { backgroundColor: autoAdvance ? theme.primaryLight : 'transparent' }]}
-                  onPress={() => setAutoAdvance(!autoAdvance)}
+                  style={[
+                    styles.utilityBtn,
+                    {
+                      backgroundColor:
+                        repeatMode !== "off"
+                          ? theme.primaryLight
+                          : "transparent",
+                    },
+                  ]}
+                  onPress={toggleRepeatMode}
                 >
                   <Ionicons
                     name="repeat"
                     size={20}
-                    color={autoAdvance ? theme.primary : theme.textSecondary}
+                    color={
+                      repeatMode !== "off" ? theme.primary : theme.textSecondary
+                    }
                   />
+                  {repeatMode === "ayah" && (
+                    <ThemedText
+                      style={{
+                        position: "absolute",
+                        fontSize: 9,
+                        fontWeight: "900",
+                        color: theme.primary,
+                        bottom: 2,
+                      }}
+                    >
+                      1
+                    </ThemedText>
+                  )}
                 </Pressable>
 
                 <Pressable
@@ -241,9 +329,15 @@ export function SurahScreen() {
                   />
                 </Pressable>
 
-                <Pressable style={[styles.mainPlayBtn, { backgroundColor: theme.primary }]} onPress={togglePlayPause}>
+                <Pressable
+                  style={[
+                    styles.mainPlayBtn,
+                    { backgroundColor: theme.primary },
+                  ]}
+                  onPress={togglePlayPause}
+                >
                   <Ionicons
-                    name={isPlaying ? 'pause' : 'play'}
+                    name={isPlaying ? "pause" : "play"}
                     size={24}
                     color="#FFFFFF"
                     style={{ marginLeft: isPlaying ? 0 : 3 }}
@@ -258,7 +352,11 @@ export function SurahScreen() {
                   <Ionicons
                     name="play-skip-forward"
                     size={18}
-                    color={currentAyahIndex === ayahs.length - 1 ? theme.border : theme.text}
+                    color={
+                      currentAyahIndex === ayahs.length - 1
+                        ? theme.border
+                        : theme.text
+                    }
                   />
                 </Pressable>
 

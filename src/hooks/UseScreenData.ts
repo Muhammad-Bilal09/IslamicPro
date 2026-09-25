@@ -1,4 +1,4 @@
-import { CountdownItem, HomeJourneyItem, HomeQuickActionItem, MoreDuaItem, PrayerTimeConfigItem, ProfileActivityItem, ProfileStatItem } from '@/types/type';
+import { CountdownItem, HomeJourneyItem, HomeQuickActionItem, PrayerTimeConfigItem } from '@/types/type';
 import { useTheme } from './use-theme';
 
 
@@ -31,6 +31,14 @@ export const useScreenData = (lastRead?: LastReadProgress | null, isLoggedIn?: b
       iconColor: '#10B981',
       bgColor: '#ECFDF5',
       route: '/quran',
+    },
+    {
+      title: 'Zakat Calculator',
+      subtitle: 'Calculate your yearly Zakat (2.5%)',
+      icon: 'calculator-outline',
+      iconColor: '#8B5CF6',
+      bgColor: '#F5F3FF',
+      route: '/zakat',
     },
   ];
 

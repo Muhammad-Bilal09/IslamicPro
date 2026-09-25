@@ -23,14 +23,16 @@ export function AppBottomTabNavigator() {
           position: 'absolute',
           left: 16,
           right: 16,
-          height: Platform.OS === 'ios' ? 85 : 75,
+          bottom: Platform.OS === 'ios' ? 24 : 16,
+          height: Platform.OS === 'ios' ? 72 : 65,
 
           backgroundColor: colors.cardBackground,
           borderRadius: 30,
 
           borderTopWidth: 0,
 
-          paddingTop: 10,
+          paddingTop: 8,
+          paddingBottom: Platform.OS === 'ios' ? 10 : 6,
 
           shadowColor: '#000',
           shadowOffset: { width: 0, height: 10 },
@@ -146,6 +148,7 @@ export function AppBottomTabNavigator() {
 
       <Tabs.Screen name="settings" options={{ href: null }} />
       <Tabs.Screen name="profile" options={{ href: null }} />
+      <Tabs.Screen name="zakat" options={{ href: null }} />
       <Tabs.Screen
         name="surah/[id]"
         options={{

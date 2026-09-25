@@ -62,7 +62,7 @@ export function MiniPlayer() {
     pathname === '/profile';
 
   const bottomOffset = hasTabBar
-    ? Platform.OS === 'ios' ? 100 : 90
+    ? Platform.OS === 'ios' ? 108 : 92
     : Platform.OS === 'ios' ? 30 : 20;
 
   return (

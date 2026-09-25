@@ -9,7 +9,7 @@ export const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: Spacing.four,
     alignItems: 'center',
-    paddingBottom: 40,
+    paddingBottom: 110,
   },
   titleContainer: {
     alignItems: 'center',

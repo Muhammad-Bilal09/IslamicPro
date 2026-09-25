@@ -83,7 +83,7 @@ export function RegisterScreen({ onGoToLogin }: RegisterScreenProps) {
           <FormInput
             label="Full Name"
             iconName="person-outline"
-            placeholder="e.g. Bilal Ahmed"
+            placeholder="e.g. Bilal"
             value={name}
             onChangeText={(t) => { setName(t); setFieldErrors((e) => ({ ...e, name: undefined })); }}
             autoCapitalize="words"
